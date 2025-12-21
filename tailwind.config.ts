@@ -22,6 +22,7 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          light: "hsl(var(--primary-light))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -57,11 +58,49 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        blue: {
+          primary: "#155DFC",
+          light: "#EFF6FF",
+          dark: "#155DFC",
+          secondary: "#5A8CFF",
+          cyan: "#0092B8",
+          sky: "#00B8DB",
+        },
+        purple: {
+          primary: "#9810FA",
+          light: "#F3E8FF",
+          dark: "#8200DB",
+        },
+        green: {
+          primary: "#009966",
+          teal: "#00BBA7",
+          light: "#D0FAE5",
+        },
+        orange: {
+          primary: "#E17100",
+          light: "#FEE685",
+          dark: "#BB4D00",
+        },
+        text: {
+          primary: "#0F172B",
+          secondary: "#45556C",
+          muted: "#62748E",
+          soft: "#90A1B9",
+        },
+        bg: {
+          soft: "#F5F7FA",
+          light: "#F8FAFC",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      fontFamily: {
+        sans: ["DM Sans", "Inter", "system-ui", "sans-serif"],
+        display: ["Space Grotesk", "system-ui", "sans-serif"],
+        mono: ["Fira Code", "monospace"],
       },
       keyframes: {
         "accordion-down": {
