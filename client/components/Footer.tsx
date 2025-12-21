@@ -1,8 +1,8 @@
 export default function Footer() {
   return (
-    <footer className="flex flex-col items-start self-stretch border-t border-[#E2E8F0] bg-white/80 backdrop-blur-xl px-20">
-      <div className="flex flex-col items-start gap-8 self-stretch max-w-[1280px] px-8 py-12 mx-auto">
-        <div className="flex justify-center items-start gap-8 self-stretch flex-wrap lg:flex-nowrap">
+    <footer className="flex flex-col items-start self-stretch border-t border-[#E2E8F0] bg-white/80 backdrop-blur-xl px-4 sm:px-8 lg:px-20">
+      <div className="flex flex-col items-start gap-8 self-stretch max-w-[1280px] px-4 sm:px-8 py-8 sm:py-12 mx-auto w-full">
+        <div className="flex flex-col lg:flex-row justify-center items-start gap-8 self-stretch flex-wrap">
           {/* Brand Section */}
           <div className="flex flex-col items-start gap-4 w-full lg:w-[280px]">
             <div className="flex items-center gap-3 self-stretch">
@@ -28,7 +28,7 @@ export default function Footer() {
           </div>
 
           {/* Product Section */}
-          <div className="flex flex-col items-start gap-4 w-full lg:w-[280px]">
+          <div className="flex flex-col items-start gap-4 w-full sm:w-auto lg:w-[280px]">
             <h4 className="self-stretch text-text-primary font-display text-base font-light leading-6">
               Product
             </h4>
@@ -46,7 +46,7 @@ export default function Footer() {
           </div>
 
           {/* Resources Section */}
-          <div className="flex flex-col items-start gap-4 w-full lg:w-[280px]">
+          <div className="flex flex-col items-start gap-4 w-full sm:w-auto lg:w-[280px]">
             <h4 className="self-stretch text-text-primary font-display text-base font-light leading-6">
               Resources
             </h4>
@@ -64,13 +64,13 @@ export default function Footer() {
           </div>
 
           {/* Get Started Section */}
-          <div className="flex flex-col items-start gap-4 w-full lg:w-[280px]">
+          <div className="flex flex-col items-start gap-4 w-full sm:w-auto lg:w-[280px]">
             <h4 className="text-text-primary font-display text-base font-light leading-6">
               Get Started
             </h4>
             <a 
               href="#claudekit" 
-              className="inline-flex items-center px-4 py-2 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#06B6D4] shadow-[0_10px_15px_-3px_rgba(43,127,255,0.2),0_4px_6px_-4px_rgba(43,127,255,0.2)]"
+              className="inline-flex items-center px-4 py-2 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#06B6D4] shadow-[0_10px_15px_-3px_rgba(43,127,255,0.2),0_4px_6px_-4px_rgba(43,127,255,0.2)] hover:shadow-xl transition-shadow"
             >
               <span className="text-white font-medium text-sm leading-5">
                 ClaudeKit (20% OFF)
