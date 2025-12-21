@@ -6,9 +6,9 @@ export default function Footer() {
           {/* Brand Section */}
           <div className="flex flex-col items-start gap-4 w-full lg:w-[280px]">
             <div className="flex items-center gap-3 self-stretch">
-              <img 
-                src="https://api.builder.io/api/v1/image/assets/TEMP/b3de1fcfae5139ab1c4b12c75496d91e98e20b88?width=106" 
-                alt="WebPAIBench" 
+              <img
+                src="https://api.builder.io/api/v1/image/assets/TEMP/b3de1fcfae5139ab1c4b12c75496d91e98e20b88?width=106"
+                alt="WebPAIBench"
                 className="w-[53px] h-12"
               />
               <div className="flex flex-col justify-center">
@@ -23,7 +23,8 @@ export default function Footer() {
               </div>
             </div>
             <div className="self-stretch text-text-secondary text-sm leading-5">
-              Build anything without terminal friction. Powered by ClaudeKit Framework.
+              Build anything without terminal friction. Powered by ClaudeKit
+              Framework.
             </div>
           </div>
 
@@ -33,13 +34,22 @@ export default function Footer() {
               Product
             </h4>
             <div className="flex flex-col gap-2 self-stretch">
-              <a href="#features" className="text-text-secondary text-sm leading-5 hover:text-blue-primary transition-colors">
+              <a
+                href="#features"
+                className="text-text-secondary text-sm leading-5 hover:text-blue-primary transition-colors"
+              >
                 Features
               </a>
-              <a href="#pricing" className="text-text-secondary text-sm leading-5 hover:text-blue-primary transition-colors">
+              <a
+                href="#pricing"
+                className="text-text-secondary text-sm leading-5 hover:text-blue-primary transition-colors"
+              >
                 Pricing
               </a>
-              <a href="#waitlist" className="text-text-secondary text-sm leading-5 hover:text-blue-primary transition-colors">
+              <a
+                href="#waitlist"
+                className="text-text-secondary text-sm leading-5 hover:text-blue-primary transition-colors"
+              >
                 Waitlist
               </a>
             </div>
@@ -51,13 +61,22 @@ export default function Footer() {
               Resources
             </h4>
             <div className="flex flex-col gap-2 self-stretch">
-              <a href="#guides" className="text-text-secondary text-sm leading-5 hover:text-blue-primary transition-colors">
+              <a
+                href="#guides"
+                className="text-text-secondary text-sm leading-5 hover:text-blue-primary transition-colors"
+              >
                 Guides
               </a>
-              <a href="#documentation" className="text-text-secondary text-sm leading-5 hover:text-blue-primary transition-colors">
+              <a
+                href="#documentation"
+                className="text-text-secondary text-sm leading-5 hover:text-blue-primary transition-colors"
+              >
                 Documentation
               </a>
-              <a href="#discord" className="text-text-secondary text-sm leading-5 hover:text-blue-primary transition-colors">
+              <a
+                href="#discord"
+                className="text-text-secondary text-sm leading-5 hover:text-blue-primary transition-colors"
+              >
                 ClaudeKit Discord
               </a>
             </div>
@@ -68,8 +87,8 @@ export default function Footer() {
             <h4 className="text-text-primary font-display text-base font-light leading-6">
               Get Started
             </h4>
-            <a 
-              href="#claudekit" 
+            <a
+              href="#claudekit"
               className="inline-flex items-center px-4 py-2 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#06B6D4] shadow-[0_10px_15px_-3px_rgba(43,127,255,0.2),0_4px_6px_-4px_rgba(43,127,255,0.2)] hover:shadow-xl transition-shadow"
             >
               <span className="text-white font-medium text-sm leading-5">
