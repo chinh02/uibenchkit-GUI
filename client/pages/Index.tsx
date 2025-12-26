@@ -1,3 +1,4 @@
+import React from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import Footer from "@/components/Footer";
@@ -13,103 +14,90 @@ import {
   Repeat,
   Zap,
   FileText,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 
+type SortField = 'model' | 'clip' | 'ssim' | 'text' | 'position' | 'ir' | 'overall';
+type SortDirection = 'asc' | 'desc';
+
 export default function Index() {
-  const leaderboardData = [
-    {
-      rank: 1,
-      model: "Qwen2.5-vl-3B-instruct (Mark)",
-      clip: "59.44%",
-      ssim: "42.82%",
-      text: "43.19%",
-      position: "51.49%",
-      ir: "79.68%",
-      overall: "57.42%",
-    },
-    {
-      rank: 2,
-      model: "Claude-3.5-Sonnet (Direct)",
-      clip: "56.74%",
-      ssim: "42.09%",
-      text: "38.33%",
-      position: "51.23%",
-      ir: "79.14%",
-      overall: "57.42%",
-    },
-    {
-      rank: 3,
-      model: "GPT-4o (Mark)",
-      clip: "59.55%",
-      ssim: "44.88%",
-      text: "44.74%",
-      position: "52.25%",
-      ir: "81.28%",
-      overall: "55.98%",
-    },
-    {
-      rank: 4,
-      model: "Claude-3.5-Sonnet (CoT)",
-      clip: "56.06%",
-      ssim: "40.05%",
-      text: "36.62%",
-      position: "50.85%",
-      ir: "77.27%",
-      overall: "57.42%",
-    },
-    {
-      rank: 5,
-      model: "GPT-4o (Direct)",
-      clip: "56.05%",
-      ssim: "41.49%",
-      text: "35.90%",
-      position: "48.88%",
-      ir: "77.54%",
-      overall: "55.98%",
-    },
-    {
-      rank: 6,
-      model: "GPT-4o (CoT)",
-      clip: "52.34%",
-      ssim: "40.13%",
-      text: "36.63%",
-      position: "46.68%",
-      ir: "72.73%",
-      overall: "55.98%",
-    },
-    {
-      rank: 7,
-      model: "Gemini-1.5-flash (Mark)",
-      clip: "51.94%",
-      ssim: "38.98%",
-      text: "34.54%",
-      position: "46.12%",
-      ir: "73.26%",
-      overall: "50.08%",
-    },
-    {
-      rank: 8,
-      model: "Gemini-1.5-flash (CoT)",
-      clip: "50.93%",
-      ssim: "38.54%",
-      text: "32.17%",
-      position: "45.11%",
-      ir: "71.12%",
-      overall: "50.08%",
-    },
-  ];
+  // Fetch leaderboard data from JSON file
+  const [demoData, setDemoData] = React.useState<any>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [sortField, setSortField] = React.useState<SortField>('overall');
+  const [sortDirection, setSortDirection] = React.useState<SortDirection>('desc');
+
+  React.useEffect(() => {
+    // Load data from public folder
+    fetch('/example-data/interaction2code-results.json')
+      .then(res => res.json())
+      .then(data => {
+        setDemoData(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error loading data:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection(field === 'model' ? 'asc' : 'desc');
+    }
+  };
+
+  const sortData = (data: any[]) => {
+    return [...data].sort((a, b) => {
+      let aVal: any = a[sortField];
+      let bVal: any = b[sortField];
+      
+      // Convert percentage strings to numbers for comparison
+      if (typeof aVal === 'string' && aVal.includes('%')) {
+        aVal = parseFloat(aVal.replace('%', ''));
+        bVal = parseFloat(bVal.replace('%', ''));
+      }
+      
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+      }
+      
+      const strA = String(aVal).toLowerCase();
+      const strB = String(bVal).toLowerCase();
+      
+      if (sortDirection === 'asc') {
+        return strA.localeCompare(strB);
+      } else {
+        return strB.localeCompare(strA);
+      }
+    });
+  };
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="w-3 h-3 text-amber-300/60" />;
+    }
+    return sortDirection === 'asc' ? (
+      <ArrowUp className="w-3 h-3 text-amber-400" />
+    ) : (
+      <ArrowDown className="w-3 h-3 text-amber-400" />
+    );
+  };
+
+  const leaderboardData = demoData?.results ? sortData(demoData.results) : [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F8FAFC] to-[#F8FAFC]">
+    <div className="min-h-screen bg-background">
+      <Sidebar />
       <Header />
 
-      <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-12 max-w-[1200px] mx-auto px-4 sm:px-6 pt-24 sm:pt-28 pb-12">
-        {/* Sidebar - Hidden on mobile, visible on large screens */}
-        <div className="hidden lg:block">
-          <Sidebar />
-        </div>
-
-        <main className="flex-1 w-full pt-6">
+      <div className="ml-64 pt-24 sm:pt-28 pb-12">
+        <main className="max-w-[1000px] mx-auto px-6 lg:px-8">
           <div className="flex flex-col gap-6 sm:gap-8">
             {/* Hero Section */}
             <div className="flex flex-col items-center gap-4 self-stretch">
@@ -126,7 +114,7 @@ export default function Index() {
                   </span>{" "}
                   <a
                     href="#paper"
-                    className="text-blue-primary underline hover:no-underline"
+                    className="text-amber-600 underline hover:no-underline"
                   >
                     Paper
                   </a>
@@ -134,8 +122,7 @@ export default function Index() {
               </div>
             </div>
 
-            {/* Repository Organization */}
-            <div className="flex flex-col sm:flex-row items-start gap-4 p-4 sm:p-6 rounded-xl border border-[#E9D4FF] bg-[rgba(173,70,255,0.05)]">
+            {/* <div className="flex flex-col sm:flex-row items-start gap-4 p-4 sm:p-6 rounded-xl border border-[#E9D4FF] bg-[rgba(173,70,255,0.05)]">
               <div className="flex w-10 h-10 items-center justify-center rounded-full bg-[#F3E8FF] flex-shrink-0">
                 <Lightbulb
                   className="w-5 h-5 text-[#9810FA]"
@@ -165,10 +152,10 @@ export default function Index() {
                   <strong>Demo video.</strong> In assets/video.mov
                 </div>
               </div>
-            </div>
+            </div> */}
 
-            {/* Introduction */}
-            <div className="flex flex-col sm:flex-row items-start gap-4 p-4 sm:p-6 rounded-xl border border-[#E9D4FF] bg-white/70">
+            
+            {/* <div className="flex flex-col sm:flex-row items-start gap-4 p-4 sm:p-6 rounded-xl border border-[#E9D4FF] bg-white/70">
               <div className="flex w-10 h-10 items-center justify-center rounded-full bg-blue-light flex-shrink-0">
                 <Lightbulb
                   className="w-5 h-5 text-blue-primary"
@@ -205,182 +192,23 @@ export default function Index() {
                   className="mt-4 w-full rounded-lg"
                 />
               </div>
-            </div>
+            </div> */}
 
             {/* Quick Start Guide */}
-            <div className="flex flex-col rounded-xl border border-[#E2E8F0] bg-white/80 shadow-sm">
-              <div className="flex flex-col gap-2 p-4 sm:p-6 border-b border-[#E2E8F0] bg-gradient-to-r from-[rgba(97,95,255,0.1)] to-[rgba(173,70,255,0.1)]">
-                <div className="flex items-center gap-3">
-                  <Package
-                    className="w-6 h-6 sm:w-7 sm:h-7 text-[#4F39F6]"
-                    strokeWidth={2.33}
-                  />
-                  <h2 className="text-[#4F39F6] font-bold text-xl sm:text-2xl leading-8">
-                    Quick Start Guide
-                  </h2>
-                </div>
-                <p className="text-text-muted text-xs sm:text-sm leading-5">
-                  Get ClaudeKit CLI running in 3 easy steps
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-6 p-4 sm:p-8">
-                {/* Step 1 */}
-                <div className="flex flex-col sm:flex-row items-start gap-4">
-                  <div className="flex w-10 h-10 items-center justify-center rounded-full border-2 border-[rgba(97,95,255,0.5)] bg-[rgba(97,95,255,0.2)] flex-shrink-0">
-                    <span className="text-[#4F39F6] font-bold text-lg leading-7">
-                      1
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-2 flex-1 w-full">
-                    <h3 className="text-[#4F39F6] font-bold text-base sm:text-lg leading-7">
-                      Install ClaudeKit CLI
-                    </h3>
-                    <p className="text-text-secondary text-sm leading-5">
-                      Install the ClaudeKit CLI tool globally:
-                    </p>
-                    <div className="flex flex-col p-4 sm:p-5 rounded-lg border border-[#E2E8F0] bg-[#F1F5F9] font-mono overflow-x-auto">
-                      <div className="flex gap-2">
-                        <span className="text-green-primary text-sm">$</span>
-                        <div className="flex flex-col gap-1 flex-1 text-xs sm:text-sm">
-                          <div className="text-[#314158]">
-                            npm install -g claudekit-cli
-                          </div>
-                          <div className="text-text-muted"># or with bun</div>
-                          <div className="text-[#314158]">
-                            bun add -g claudekit-cli
-                          </div>
-                          <div className="text-text-muted pt-2">
-                            # Verify installation
-                          </div>
-                          <div className="text-[#314158]">ck --version</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Step 2 */}
-                <div className="flex flex-col sm:flex-row items-start gap-4">
-                  <div className="flex w-10 h-10 items-center justify-center rounded-full border-2 border-[rgba(173,70,255,0.5)] bg-[rgba(173,70,255,0.2)] flex-shrink-0">
-                    <span className="text-[#9810FA] font-bold text-lg leading-7">
-                      2
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-2 flex-1 w-full">
-                    <h3 className="text-[#9810FA] font-bold text-base sm:text-lg leading-7">
-                      Initialize ClaudeKit in Your Project
-                    </h3>
-                    <p className="text-text-secondary text-sm leading-5">
-                      Navigate to your project and set up ClaudeKit:
-                    </p>
-                    <div className="flex flex-col p-4 sm:p-5 rounded-lg border border-[#E2E8F0] bg-[#F1F5F9] font-mono overflow-x-auto">
-                      <div className="flex gap-2">
-                        <span className="text-green-primary text-sm">$</span>
-                        <div className="flex flex-col gap-1 flex-1 text-xs sm:text-sm">
-                          <div className="text-[#314158]">
-                            cd ~/projects/my-project
-                          </div>
-                          <div className="text-[#314158]">ck init</div>
-                          <div className="text-text-muted">
-                            # Interactive mode - follow the prompts
-                          </div>
-                          <div className="text-text-muted">
-                            # This creates .claude/ directory with ClaudeKit
-                            files
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2 p-3 sm:p-4 rounded border border-[rgba(43,127,255,0.2)] bg-[rgba(43,127,255,0.1)]">
-                      <p className="text-blue-primary font-medium text-xs">
-                        💡 Choose Your Setup:
-                      </p>
-                      <div className="text-text-secondary text-xs leading-4">
-                        <p>
-                          When running{" "}
-                          <code className="px-1 py-0.5 rounded bg-blue-light text-blue-primary font-mono text-xs">
-                            ck init
-                          </code>
-                          , you'll see two options:
-                        </p>
-                        <ul className="ml-4 mt-1 space-y-1 list-disc">
-                          <li>
-                            <strong>Global (Recommended):</strong> Installs for
-                            your user account. Works everywhere.
-                          </li>
-                          <li>
-                            <strong>Local:</strong> Installs just for this
-                            specific project folder.
-                          </li>
-                        </ul>
-                        <p className="mt-2">
-                          Choosing "Global" is usually easiest!
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Step 3 */}
-                <div className="flex flex-col sm:flex-row items-start gap-4">
-                  <div className="flex w-10 h-10 items-center justify-center rounded-full border-2 border-[rgba(0,188,125,0.5)] bg-[rgba(0,188,125,0.2)] flex-shrink-0">
-                    <span className="text-green-primary font-bold text-lg leading-7">
-                      3
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-2 flex-1 w-full">
-                    <h3 className="text-green-primary font-bold text-base sm:text-lg leading-7">
-                      Start Claude Code & Create!
-                    </h3>
-                    <p className="text-text-secondary text-sm leading-5">
-                      Launch Claude Code CLI and chat with AI:
-                    </p>
-                    <div className="flex flex-col gap-2 p-4 sm:p-5 rounded-lg border border-[#E2E8F0] bg-[#F1F5F9] font-mono overflow-x-auto">
-                      <div className="flex gap-2">
-                        <span className="text-green-primary text-sm">$</span>
-                        <div className="flex flex-col gap-1 flex-1 text-xs sm:text-sm">
-                          <div className="text-[#314158]">claude</div>
-                          <div className="text-text-muted">
-                            # Starts interactive Claude Code CLI
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-[#0092B8] text-xs ml-4">
-                        Starting Claude Code CLI...
-                      </div>
-                      <div className="flex flex-col sm:flex-row gap-2 ml-4">
-                        <span className="text-green-primary text-sm">You:</span>
-                        <span className="text-[#314158] text-xs sm:text-sm">
-                          Using ui-ux-pro-max skill, create a landing page for
-                          my coffee shop
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 p-3 sm:p-4 rounded border border-[rgba(0,188,125,0.2)] bg-[rgba(0,188,125,0.1)]">
-                      <Star className="w-4 h-4 text-green-primary flex-shrink-0" />
-                      <p className="text-green-primary text-xs">
-                        That's it! AI will search design databases and create
-                        beautiful code for you.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            
 
             {/* Official Leaderboard */}
             <div
-              className="flex flex-col rounded-2xl border border-[#E2E8F0] bg-white/80 shadow-sm"
+              className="flex flex-col rounded-2xl border border-amber-200/50 bg-card shadow-sm"
               id="leaderboard"
             >
-              <div className="flex flex-col gap-2 p-4 sm:p-6 border-b border-[#E2E8F0] bg-gradient-to-r from-[rgba(0,184,219,0.1)] to-[rgba(43,127,255,0.1)]">
+              <div className="flex flex-col gap-2 p-4 sm:p-6 border-b border-amber-200/50 bg-gradient-to-r from-amber-100/50 to-amber-50/50">
                 <div className="flex items-center gap-3">
                   <Code
-                    className="w-6 h-6 sm:w-7 sm:h-7 text-[#0092B8]"
+                    className="w-6 h-6 sm:w-7 sm:h-7 text-amber-600"
                     strokeWidth={2.33}
                   />
-                  <h2 className="text-[#0092B8] font-bold text-xl sm:text-2xl leading-8">
+                  <h2 className="text-amber-700 font-bold text-xl sm:text-2xl leading-8">
                     Official Leaderboard
                   </h2>
                 </div>
@@ -389,19 +217,19 @@ export default function Index() {
                 </p>
 
                 <div className="flex items-center gap-3 mt-4 flex-wrap">
-                  <button className="px-3 sm:px-4 py-2 rounded-xl border border-blue-secondary bg-[#0092B8] text-white font-semibold text-xs sm:text-sm whitespace-nowrap">
+                  <button className="px-3 sm:px-4 py-2 rounded-xl border border-amber-400 bg-amber-500 text-dark-bg font-semibold text-xs sm:text-sm whitespace-nowrap">
                     Interaction2Code
                   </button>
-                  <button className="px-3 sm:px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-text-primary font-medium text-xs sm:text-sm hover:border-blue-primary transition-colors whitespace-nowrap">
+                  <button className="px-3 sm:px-4 py-2 rounded-xl border border-amber-200 bg-white text-text-primary font-medium text-xs sm:text-sm hover:border-amber-400 transition-colors whitespace-nowrap">
                     MRWeb
                   </button>
-                  <button className="px-3 sm:px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-text-primary font-medium text-xs sm:text-sm hover:border-blue-primary transition-colors whitespace-nowrap">
+                  <button className="px-3 sm:px-4 py-2 rounded-xl border border-amber-200 bg-white text-text-primary font-medium text-xs sm:text-sm hover:border-amber-400 transition-colors whitespace-nowrap">
                     DCGen
                   </button>
-                  <button className="px-3 sm:px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-text-primary font-medium text-xs sm:text-sm hover:border-blue-primary transition-colors whitespace-nowrap">
+                  <button className="px-3 sm:px-4 py-2 rounded-xl border border-amber-200 bg-white text-text-primary font-medium text-xs sm:text-sm hover:border-amber-400 transition-colors whitespace-nowrap">
                     Design2Code
                   </button>
-                  <button className="px-3 sm:px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-text-primary font-medium text-xs sm:text-sm hover:border-blue-primary transition-colors whitespace-nowrap">
+                  <button className="px-3 sm:px-4 py-2 rounded-xl border border-amber-200 bg-white text-text-primary font-medium text-xs sm:text-sm hover:border-amber-400 transition-colors whitespace-nowrap">
                     DesignBench
                   </button>
                 </div>
@@ -409,83 +237,115 @@ export default function Index() {
 
               {/* Leaderboard Table - Scrollable on mobile */}
               <div className="p-2 sm:p-4 overflow-x-auto">
-                <div className="rounded-lg bg-white overflow-hidden min-w-[800px]">
-                  <div className="flex items-center justify-between px-4 py-2.5 rounded-md bg-[#0092B8] text-white">
-                    <div className="w-20 sm:w-28 font-bold text-xs sm:text-sm">
-                      Rank
-                    </div>
-                    <div className="w-48 sm:w-60 font-semibold text-xs sm:text-sm">
-                      Model
-                    </div>
-                    <div className="w-20 sm:w-24 font-semibold text-xs sm:text-sm">
-                      Clip
-                    </div>
-                    <div className="w-20 sm:w-24 font-semibold text-xs sm:text-sm">
-                      SSIM
-                    </div>
-                    <div className="w-20 sm:w-24 font-semibold text-xs sm:text-sm">
-                      Text
-                    </div>
-                    <div className="w-20 sm:w-24 font-semibold text-xs sm:text-sm">
-                      Position
-                    </div>
-                    <div className="w-20 sm:w-28 font-semibold text-xs sm:text-sm">
-                      IR
-                    </div>
-                    <div className="w-20 sm:w-24 font-semibold text-xs sm:text-sm">
-                      Overall
-                    </div>
+                {loading ? (
+                  <div className="flex items-center justify-center p-12">
+                    <div className="text-text-muted">Loading leaderboard data...</div>
                   </div>
-                  {leaderboardData.map((row, index) => (
-                    <div key={index}>
-                      <div
-                        className={`flex items-center justify-between px-4 py-3 sm:py-4 ${index % 2 === 0 ? "bg-bg-soft" : ""}`}
+                ) : leaderboardData.length === 0 ? (
+                  <div className="flex items-center justify-center p-12">
+                    <div className="text-text-muted">No data available</div>
+                  </div>
+                ) : (
+                  <div className="rounded-lg bg-white overflow-hidden min-w-[800px]">
+                    <div className="flex items-center justify-between px-4 py-2.5 rounded-md bg-dark-bg text-amber-100">
+                      <div 
+                        className="w-64 sm:w-72 font-semibold text-xs sm:text-sm flex items-center gap-2 cursor-pointer hover:bg-dark-surface px-2 py-1 rounded transition-colors"
+                        onClick={() => handleSort('model')}
                       >
-                        <div className="w-20 sm:w-28 text-[#363636] font-medium text-xs sm:text-sm">
-                          #{row.rank}
-                        </div>
-                        <div className="w-48 sm:w-60 text-[#363636] font-medium text-xs sm:text-sm truncate">
-                          {row.model}
-                        </div>
-                        <div className="w-20 sm:w-24 text-[#363636] font-medium text-xs sm:text-sm">
-                          {row.clip}
-                        </div>
-                        <div className="w-20 sm:w-24 text-[#363636] font-medium text-xs sm:text-sm">
-                          {row.ssim}
-                        </div>
-                        <div className="w-20 sm:w-24 text-[#363636] font-medium text-xs sm:text-sm">
-                          {row.text}
-                        </div>
-                        <div className="w-20 sm:w-24 text-[#363636] font-medium text-xs sm:text-sm">
-                          {row.position}
-                        </div>
-                        <div className="w-20 sm:w-28 text-[#363636] font-medium text-xs sm:text-sm">
-                          {row.ir}
-                        </div>
-                        <div className="w-20 sm:w-24 text-blue-primary font-semibold text-xs sm:text-sm">
-                          {row.overall}
-                        </div>
+                        Model
+                        <SortIcon field="model" />
                       </div>
-                      {index < leaderboardData.length - 1 && (
-                        <div className="h-px bg-[#E7E7E7]" />
-                      )}
+                      <div 
+                        className="w-20 sm:w-24 font-semibold text-xs sm:text-sm flex items-center gap-2 cursor-pointer hover:bg-dark-surface px-2 py-1 rounded transition-colors"
+                        onClick={() => handleSort('clip')}
+                      >
+                        Clip
+                        <SortIcon field="clip" />
+                      </div>
+                      <div 
+                        className="w-20 sm:w-24 font-semibold text-xs sm:text-sm flex items-center gap-2 cursor-pointer hover:bg-dark-surface px-2 py-1 rounded transition-colors"
+                        onClick={() => handleSort('ssim')}
+                      >
+                        SSIM
+                        <SortIcon field="ssim" />
+                      </div>
+                      <div 
+                        className="w-20 sm:w-24 font-semibold text-xs sm:text-sm flex items-center gap-2 cursor-pointer hover:bg-dark-surface px-2 py-1 rounded transition-colors"
+                        onClick={() => handleSort('text')}
+                      >
+                        Text
+                        <SortIcon field="text" />
+                      </div>
+                      <div 
+                        className="w-20 sm:w-24 font-semibold text-xs sm:text-sm flex items-center gap-2 cursor-pointer hover:bg-dark-surface px-2 py-1 rounded transition-colors"
+                        onClick={() => handleSort('position')}
+                      >
+                        Position
+                        <SortIcon field="position" />
+                      </div>
+                      <div 
+                        className="w-20 sm:w-28 font-semibold text-xs sm:text-sm flex items-center gap-2 cursor-pointer hover:bg-dark-surface px-2 py-1 rounded transition-colors"
+                        onClick={() => handleSort('ir')}
+                      >
+                        IR
+                        <SortIcon field="ir" />
+                      </div>
+                      <div 
+                        className="w-20 sm:w-24 font-semibold text-xs sm:text-sm flex items-center gap-2 cursor-pointer hover:bg-dark-surface px-2 py-1 rounded transition-colors"
+                        onClick={() => handleSort('overall')}
+                      >
+                        Overall
+                        <SortIcon field="overall" />
+                      </div>
                     </div>
-                  ))}
-                </div>
+                    {leaderboardData.map((row, index) => (
+                      <div key={index}>
+                        <div
+                          className={`flex items-center justify-between px-4 py-3 sm:py-4 ${index % 2 === 0 ? "bg-amber-50/50" : ""}`}
+                        >
+                          <div className="w-64 sm:w-72 text-text-primary font-medium text-xs sm:text-sm truncate">
+                            {row.model}
+                          </div>
+                          <div className="w-20 sm:w-24 text-text-secondary font-medium text-xs sm:text-sm">
+                            {row.clip}
+                          </div>
+                          <div className="w-20 sm:w-24 text-text-secondary font-medium text-xs sm:text-sm">
+                            {row.ssim}
+                          </div>
+                          <div className="w-20 sm:w-24 text-text-secondary font-medium text-xs sm:text-sm">
+                            {row.text}
+                          </div>
+                          <div className="w-20 sm:w-24 text-text-secondary font-medium text-xs sm:text-sm">
+                            {row.position}
+                          </div>
+                          <div className="w-20 sm:w-28 text-text-secondary font-medium text-xs sm:text-sm">
+                            {row.ir}
+                          </div>
+                          <div className="w-20 sm:w-24 text-amber-600 font-semibold text-xs sm:text-sm">
+                            {row.overall}
+                          </div>
+                        </div>
+                        {index < leaderboardData.length - 1 && (
+                          <div className="h-px bg-amber-100" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
             {/* CCS - Claude Code Switch */}
-            <div className="flex flex-col rounded-xl border border-[#FEE685] bg-white/80 shadow-sm">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-6 bg-gradient-to-r from-[rgba(254,154,0,0.1)] to-[rgba(255,105,0,0.1)]">
+            <div className="flex flex-col rounded-xl border border-amber-200 bg-card shadow-sm">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-6 bg-gradient-to-r from-amber-100/50 to-amber-50/30">
                 <div className="flex flex-col gap-2 flex-1">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
-                    <div className="px-3 py-1 rounded-full border border-[rgba(254,154,0,0.4)] bg-[rgba(254,154,0,0.2)]">
-                      <span className="text-[#BB4D00] font-bold text-xs leading-4">
+                    <div className="px-3 py-1 rounded-full border border-amber-300/50 bg-amber-100">
+                      <span className="text-amber-700 font-bold text-xs leading-4">
                         POWER TOOL
                       </span>
                     </div>
-                    <h2 className="text-[#E17100] font-bold text-lg sm:text-xl leading-7">
+                    <h2 className="text-amber-700 font-bold text-lg sm:text-xl leading-7">
                       CCS - Claude Code Switch
                     </h2>
                   </div>
@@ -517,22 +377,22 @@ export default function Index() {
                 </div>
                 <a
                   href="#ccs-guide"
-                  className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 rounded-lg border border-[#FEE685] bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] hover:shadow-lg transition-shadow whitespace-nowrap"
+                  className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 rounded-lg border border-amber-200 bg-white shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] hover:shadow-lg transition-shadow whitespace-nowrap"
                 >
-                  <span className="text-[#E17100] font-bold text-sm sm:text-base leading-6">
+                  <span className="text-amber-700 font-bold text-sm sm:text-base leading-6">
                     View CCS Guide
                   </span>
-                  <ArrowRight className="w-4 h-4 text-[#E17100]" />
+                  <ArrowRight className="w-4 h-4 text-amber-700" />
                 </a>
               </div>
             </div>
 
             {/* Pro Tips for CLI Power Users */}
-            <div className="flex flex-col gap-4 sm:gap-6 p-4 sm:p-8 rounded-2xl border border-[#E2E8F0] bg-white/80 shadow-sm">
+            <div className="flex flex-col gap-4 sm:gap-6 p-4 sm:p-8 rounded-2xl border border-amber-200/50 bg-card shadow-sm">
               <div className="flex items-center gap-3 sm:gap-4">
-                <div className="flex p-2 sm:p-3 rounded-xl bg-[#DBEAFE]">
+                <div className="flex p-2 sm:p-3 rounded-xl bg-amber-100">
                   <Lightbulb
-                    className="w-5 h-5 sm:w-6 sm:h-6 text-blue-primary"
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600"
                     strokeWidth={2}
                   />
                 </div>
@@ -542,13 +402,13 @@ export default function Index() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-                <div className="flex items-start gap-3 p-3 sm:p-4 rounded-lg border border-[#E2E8F0] bg-bg-soft">
+                <div className="flex items-start gap-3 p-3 sm:p-4 rounded-lg border border-amber-100 bg-amber-50/50">
                   <Code
-                    className="w-5 h-5 sm:w-6 sm:h-6 text-green-teal flex-shrink-0 mt-0.5"
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600 flex-shrink-0 mt-0.5"
                     strokeWidth={2}
                   />
                   <div className="flex flex-col gap-1">
-                    <h3 className="text-[#1D293D] font-medium text-sm">
+                    <h3 className="text-text-primary font-medium text-sm">
                       Use Quotes for Multi-word Requests
                     </h3>
                     <p className="text-text-secondary text-xs leading-4">
@@ -558,18 +418,18 @@ export default function Index() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 sm:p-4 rounded-lg border border-[#E2E8F0] bg-bg-soft">
+                <div className="flex items-start gap-3 p-3 sm:p-4 rounded-lg border border-amber-100 bg-amber-50/50">
                   <MessageSquare
-                    className="w-5 h-5 sm:w-6 sm:h-6 text-blue-cyan flex-shrink-0 mt-0.5"
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600 flex-shrink-0 mt-0.5"
                     strokeWidth={2}
                   />
                   <div className="flex flex-col gap-1">
-                    <h3 className="text-[#1D293D] font-medium text-sm">
+                    <h3 className="text-text-primary font-medium text-sm">
                       Interactive Mode = Better Iteration
                     </h3>
                     <p className="text-text-secondary text-xs leading-4">
                       Use{" "}
-                      <code className="px-1 py-0.5 rounded bg-[#ECFEFF] text-[#0092B8] font-mono text-xs">
+                      <code className="px-1 py-0.5 rounded bg-amber-100 text-amber-700 font-mono text-xs">
                         ccs
                       </code>{" "}
                       without arguments for back-and-forth refinement
@@ -577,18 +437,18 @@ export default function Index() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 sm:p-4 rounded-lg border border-[#E2E8F0] bg-bg-soft">
+                <div className="flex items-start gap-3 p-3 sm:p-4 rounded-lg border border-amber-100 bg-amber-50/50">
                   <FileText
-                    className="w-5 h-5 sm:w-6 sm:h-6 text-[#2B7FFF] flex-shrink-0 mt-0.5"
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600 flex-shrink-0 mt-0.5"
                     strokeWidth={2}
                   />
                   <div className="flex flex-col gap-1">
-                    <h3 className="text-[#1D293D] font-medium text-sm">
+                    <h3 className="text-text-primary font-medium text-sm">
                       Reference Files with @
                     </h3>
                     <p className="text-text-secondary text-xs leading-4">
                       Use{" "}
-                      <code className="px-1 py-0.5 rounded bg-blue-light text-blue-primary font-mono text-xs">
+                      <code className="px-1 py-0.5 rounded bg-amber-100 text-amber-700 font-mono text-xs">
                         @filename
                       </code>{" "}
                       to tell AI which files to modify
@@ -596,13 +456,13 @@ export default function Index() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3 sm:p-4 rounded-lg border border-[#E2E8F0] bg-bg-soft">
+                <div className="flex items-start gap-3 p-3 sm:p-4 rounded-lg border border-amber-100 bg-amber-50/50">
                   <Star
-                    className="w-5 h-5 sm:w-6 sm:h-6 text-purple-primary flex-shrink-0 mt-0.5"
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600 flex-shrink-0 mt-0.5"
                     strokeWidth={2}
                   />
                   <div className="flex flex-col gap-1">
-                    <h3 className="text-[#1D293D] font-medium text-sm">
+                    <h3 className="text-text-primary font-medium text-sm">
                       Always Use "Using ui-ux-pro-max skill"
                     </h3>
                     <p className="text-text-secondary text-xs leading-4">

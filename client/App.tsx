@@ -8,6 +8,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import Interaction2Code from "./pages/Interaction2Code";
+import MRWeb from "./pages/MRWeb";
+import DCGen from "./pages/DCGen";
+import Design2Code from "./pages/Design2Code";
+import DesignBench from "./pages/DesignBench";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +24,11 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/interaction2code" element={<Interaction2Code />} />
+          <Route path="/mrweb" element={<MRWeb />} />
+          <Route path="/dcgen" element={<DCGen />} />
+          <Route path="/design2code" element={<Design2Code />} />
+          <Route path="/designbench" element={<DesignBench />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

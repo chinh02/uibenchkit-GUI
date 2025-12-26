@@ -1,0 +1,110 @@
+{
+  "name": "interaction2code",
+  "lastUpdated": "2025-12-26T10:30:00Z",
+  "results": [
+    {
+      "rank": 1,
+      "model": "Qwen2.5-vl-3B-instruct (Mark)",
+      "clip": "59.44%",
+      "ssim": "42.82%",
+      "text": "43.19%",
+      "position": "51.49%",
+      "ir": "79.68%",
+      "overall": "57.42%",
+      "date": "2025-01-10",
+      "org": "Alibaba",
+      "tags": ["Qwen", "Multimodal", "Open Source"]
+    },
+    {
+      "rank": 2,
+      "model": "Claude-3.5-Sonnet (Direct)",
+      "clip": "56.74%",
+      "ssim": "42.09%",
+      "text": "38.33%",
+      "position": "51.23%",
+      "ir": "79.14%",
+      "overall": "57.42%",
+      "date": "2025-01-08",
+      "org": "Anthropic",
+      "tags": ["Claude", "Multimodal", "Commercial"]
+    },
+    {
+      "rank": 3,
+      "model": "GPT-4o (Mark)",
+      "clip": "59.55%",
+      "ssim": "44.88%",
+      "text": "44.74%",
+      "position": "52.25%",
+      "ir": "81.28%",
+      "overall": "55.98%",
+      "date": "2025-01-05",
+      "org": "OpenAI",
+      "tags": ["GPT", "Multimodal", "Commercial"]
+    },
+    {
+      "rank": 4,
+      "model": "Claude-3.5-Sonnet (CoT)",
+      "clip": "56.06%",
+      "ssim": "40.05%",
+      "text": "36.62%",
+      "position": "50.85%",
+      "ir": "77.27%",
+      "overall": "57.42%",
+      "date": "2025-01-04",
+      "org": "Anthropic",
+      "tags": ["Claude", "Multimodal", "Commercial"]
+    },
+    {
+      "rank": 5,
+      "model": "GPT-4o (Direct)",
+      "clip": "56.05%",
+      "ssim": "41.49%",
+      "text": "35.90%",
+      "position": "48.88%",
+      "ir": "77.54%",
+      "overall": "55.98%",
+      "date": "2025-01-03",
+      "org": "OpenAI",
+      "tags": ["GPT", "Multimodal", "Commercial"]
+    },
+    {
+      "rank": 6,
+      "model": "GPT-4o (CoT)",
+      "clip": "52.34%",
+      "ssim": "40.13%",
+      "text": "36.63%",
+      "position": "46.68%",
+      "ir": "72.73%",
+      "overall": "55.98%",
+      "date": "2025-01-02",
+      "org": "OpenAI",
+      "tags": ["GPT", "Multimodal", "Commercial"]
+    },
+    {
+      "rank": 7,
+      "model": "Gemini-1.5-flash (Mark)",
+      "clip": "51.94%",
+      "ssim": "38.98%",
+      "text": "34.54%",
+      "position": "46.12%",
+      "ir": "73.26%",
+      "overall": "50.08%",
+      "date": "2024-12-30",
+      "org": "Google",
+      "tags": ["Gemini", "Multimodal", "Commercial"]
+    },
+    {
+      "rank": 8,
+      "model": "Gemini-1.5-flash (CoT)",
+      "clip": "50.93%",
+      "ssim": "38.54%",
+      "text": "32.17%",
+      "position": "45.11%",
+      "ir": "71.12%",
+      "overall": "50.08%",
+      "date": "2024-12-28",
+      "org": "Google",
+      "tags": ["Gemini", "Multimodal", "Commercial"]
+    }
+  ]
+}

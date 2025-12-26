@@ -1,8 +1,12 @@
+import { Link, useLocation } from "react-router-dom";
+
 export default function Sidebar() {
+  const location = useLocation();
+  
   const navItems = [
     {
       name: "Interaction2Code",
-      active: true,
+      path: "/interaction2code",
       icon: (
         <svg
           className="w-5 h-5"
@@ -50,6 +54,7 @@ export default function Sidebar() {
     },
     {
       name: "MRWeb",
+      path: "/mrweb",
       icon: (
         <svg
           className="w-5 h-5"
@@ -110,6 +115,7 @@ export default function Sidebar() {
       ),
     },
     {
+      path: "/dcgen",
       name: "DCGen",
       icon: (
         <svg
@@ -163,7 +169,8 @@ export default function Sidebar() {
         </svg>
       ),
     },
-    {
+    {path: "/design2code",
+      
       name: "Design2Code",
       icon: (
         <svg
@@ -207,7 +214,8 @@ export default function Sidebar() {
         </svg>
       ),
     },
-    {
+    {path: "/designbench",
+      
       name: "DesignBench",
       icon: (
         <svg
@@ -245,48 +253,56 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 flex-shrink-0">
-      <div className="sticky top-32">
-        <div className="w-64 flex flex-col rounded-2xl border border-[rgba(226,232,240,0.5)] bg-white/80 shadow-sm backdrop-blur-md">
-          <div className="flex flex-col items-center gap-4 px-4 py-6">
-            <div className="w-full">
-              <div className="text-text-secondary font-bold text-xs leading-4 tracking-[0.6px] uppercase">
-                WebPAIBench
-              </div>
+    <aside className="fixed left-0 top-0 h-screen w-64 z-40 bg-dark-bg border-r border-dark-border">
+      <div className="flex flex-col h-full py-6">
+        {/* Logo section */}
+        <div className="px-6 mb-6">
+          <a href="/" className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-amber-primary rounded-lg flex items-center justify-center">
+              <span className="text-dark-bg font-bold text-lg">W</span>
             </div>
-            <nav className="flex flex-col gap-1 w-full">
-              {navItems.map((item, index) => (
-                <a
+            <div className="flex flex-col">
+              <span className="text-amber-primary font-display font-bold text-lg">WebPAIBench</span>
+              <span className="text-dark-muted text-xs">Web AI Benchmarks</span>
+            </div>
+          </a>
+        </div>
+        
+        {/* Navigation */}
+        <div className="flex-1 px-4 overflow-y-auto">
+          <div className="text-dark-muted font-semibold text-xs uppercase tracking-wider px-2 mb-3">
+            Benchmarks
+          </div>
+          <nav className="flex flex-col gap-1">
+            {navItems.map((item, index) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <Link
                   key={index}
-                  href={`#${item.name.toLowerCase()}`}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                    item.active
-                      ? "bg-blue-light shadow-[0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)] text-blue-primary"
-                      : "text-text-secondary hover:bg-gray-50"
+                  to={item.path}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                    isActive
+                      ? "bg-amber-primary/10 text-amber-primary"
+                      : "text-dark-text/70 hover:text-amber-primary hover:bg-dark-surface"
                   }`}
                 >
-                  <div
-                    className={
-                      item.active ? "text-blue-primary" : "text-text-secondary"
-                    }
-                  >
+                  <div className={isActive ? "text-amber-primary" : "text-current"}>
                     {item.icon}
                   </div>
-                  <div className="flex flex-col flex-1">
-                    <div
-                      className={`font-medium text-sm leading-5 ${item.active ? "text-blue-primary" : ""}`}
-                    >
-                      {item.name}
-                    </div>
-                  </div>
-                  {item.active && (
-                    <div className="flex items-end ml-auto">
-                      <div className="w-1.5 h-1.5 rounded-full bg-[#2B7FFF] shadow-[0_0_8px_0_rgba(59,130,246,0.6)]" />
-                    </div>
+                  <span className="font-medium text-sm">{item.name}</span>
+                  {isActive && (
+                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-primary shadow-[0_0_8px_0_rgba(251,191,36,0.6)]" />
                   )}
-                </a>
-              ))}
-            </nav>
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+        
+        {/* Footer */}
+        <div className="px-6 pt-4 border-t border-dark-border">
+          <div className="text-dark-muted text-xs">
+            © 2025 WebPAIBench
           </div>
         </div>
       </div>
