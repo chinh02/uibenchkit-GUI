@@ -16,39 +16,45 @@ export default function Footer() {
                   </div>
                 </div>
                 <div className="text-text-muted font-medium text-xs leading-4 tracking-[0.3px]">
-                  Crystal clear AI coding
+                  Web AI Benchmarks Leaderboard
                 </div>
               </div>
             </div>
             <div className="self-stretch text-text-secondary text-sm leading-5">
-              Build anything without terminal friction. Powered by ClaudeKit
-              Framework.
+              Comprehensive benchmarks for evaluating AI-driven webpage code
+              generation from visual designs.
             </div>
           </div>
 
-          {/* Product Section */}
+          {/* Benchmarks Section */}
           <div className="flex flex-col items-start gap-4 w-full sm:w-auto lg:w-[280px]">
             <h4 className="self-stretch text-text-primary font-display text-base font-light leading-6">
-              Product
+              Benchmarks
             </h4>
             <div className="flex flex-col gap-2 self-stretch">
               <a
-                href="#features"
+                href="/dcgen"
                 className="text-text-secondary text-sm leading-5 hover:text-amber-600 transition-colors"
               >
-                Features
+                DCGen
               </a>
               <a
-                href="#pricing"
+                href="/design2code"
                 className="text-text-secondary text-sm leading-5 hover:text-amber-600 transition-colors"
               >
-                Pricing
+                Design2Code
               </a>
               <a
-                href="#waitlist"
+                href="/interaction2code"
                 className="text-text-secondary text-sm leading-5 hover:text-amber-600 transition-colors"
               >
-                Waitlist
+                Interaction2Code
+              </a>
+              <a
+                href="/mrweb"
+                className="text-text-secondary text-sm leading-5 hover:text-amber-600 transition-colors"
+              >
+                MRWeb
               </a>
             </div>
           </div>
@@ -60,42 +66,59 @@ export default function Footer() {
             </h4>
             <div className="flex flex-col gap-2 self-stretch">
               <a
-                href="#guides"
+                href="/paper"
                 className="text-text-secondary text-sm leading-5 hover:text-amber-600 transition-colors"
               >
-                Guides
+                Paper
               </a>
               <a
-                href="#documentation"
+                href="/docs"
                 className="text-text-secondary text-sm leading-5 hover:text-amber-600 transition-colors"
               >
                 Documentation
               </a>
               <a
-                href="#discord"
+                href="/live-demo"
                 className="text-text-secondary text-sm leading-5 hover:text-amber-600 transition-colors"
               >
-                ClaudeKit Discord
+                Live Demo
+              </a>
+              <a
+                href="https://github.com/WebPAI/DCGen"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-text-secondary text-sm leading-5 hover:text-amber-600 transition-colors"
+              >
+                GitHub
               </a>
             </div>
           </div>
 
-          {/* Get Started Section */}
+          {/* Contact Section */}
           <div className="flex flex-col items-start gap-4 w-full sm:w-auto lg:w-[280px]">
             <h4 className="text-text-primary font-display text-base font-light leading-6">
-              Get Started
+              Contact
             </h4>
-            <a
-              href="#claudekit"
-              className="inline-flex items-center px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 shadow-[0_10px_15px_-3px_rgba(251,191,36,0.3),0_4px_6px_-4px_rgba(251,191,36,0.3)] hover:shadow-xl transition-shadow"
-            >
-              <span className="text-dark-bg font-medium text-sm leading-5">
-                ClaudeKit (20% OFF)
-              </span>
-            </a>
-            <p className="text-text-muted text-xs leading-4">
-              Required for VividKit
-            </p>
+            <div className="flex flex-col gap-2 self-stretch">
+              <a
+                href="/contact"
+                className="text-text-secondary text-sm leading-5 hover:text-amber-600 transition-colors"
+              >
+                Contact Us
+              </a>
+              <a
+                href="/citations"
+                className="text-text-secondary text-sm leading-5 hover:text-amber-600 transition-colors"
+              >
+                How to Cite
+              </a>
+              <a
+                href="/submit"
+                className="text-text-secondary text-sm leading-5 hover:text-amber-600 transition-colors"
+              >
+                Submit Results
+              </a>
+            </div>
           </div>
         </div>
 

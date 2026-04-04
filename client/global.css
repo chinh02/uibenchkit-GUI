@@ -7,7 +7,7 @@
 
 @layer base {
   /**
-   * Tailwind CSS theme - Yellow/Black theme inspired by claudekit.cc
+   * Tailwind CSS theme - WebPAIBench Yellow/Black theme
    * tailwind.config.ts expects the following color variables to be expressed as HSL values.
    * A different format will require also updating the theme in tailwind.config.ts.
   */
@@ -99,6 +99,37 @@
 
   body {
     @apply bg-background text-foreground font-sans;
+  }
+
+  /* Custom Scrollbar Styles - Yellow/Black Theme */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #1c1917;
+    border-radius: 5px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+    border-radius: 5px;
+    border: 2px solid #1c1917;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: #1c1917;
+  }
+
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #f59e0b #1c1917;
   }
 
   :where(p, span, li, h1, h2, h3, h4, h5, h6, a, button, label, td, th) {

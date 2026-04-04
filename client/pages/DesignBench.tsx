@@ -52,8 +52,8 @@ export default function DesignBench() {
     <div className="min-h-screen bg-background">
       <Sidebar />
       <Header />
-      <div className="ml-64 pt-24 sm:pt-28 pb-12">
-        <main className="max-w-[1000px] mx-auto px-6 lg:px-8">
+      <div className="ml-64 pt-28 pb-12">
+        <main className="px-8 lg:px-12">
           <div className="flex flex-col gap-6 sm:gap-8">
             <div className="mb-4">
               <h1 className="text-4xl font-bold text-text-primary mb-4">DesignBench</h1>

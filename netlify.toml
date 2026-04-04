@@ -1,15 +1,17 @@
 [build]
   command = "npm run build:client"
-  functions = "netlify/functions"
   publish = "dist/spa"
 
+[dev]
+  command = "pnpm dev"
+  targetPort = 8080
+  port = 8888
+  autoLaunch = false
 
-[functions]
-  external_node_modules = ["express"]
-  node_bundler = "esbuild"
-  
+# Note: For production on Netlify, you'll need to re-add the functions folder
+# and configure the github-proxy function. For local dev, Express handles this.
+
 [[redirects]]
-  force = true
-  from = "/api/*"
+  from = "/*"
+  to = "/index.html"
   status = 200
-  to = "/.netlify/functions/api/:splat"

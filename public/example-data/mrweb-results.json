@@ -1,0 +1,84 @@
+{
+  "name": "mrweb",
+  "lastUpdated": "2025-12-26T10:30:00Z",
+  "results": [
+    {
+      "rank": 1,
+      "model": "GPT-4o (Direct)",
+      "clip": "62.15%",
+      "ssim": "45.33%",
+      "text": "46.88%",
+      "position": "54.12%",
+      "ir": "83.45%",
+      "overall": "61.23%",
+      "date": "2025-01-10",
+      "org": "OpenAI",
+      "tags": ["GPT", "Multimodal", "Commercial"]
+    },
+    {
+      "rank": 2,
+      "model": "Claude-3.5-Sonnet (Mark)",
+      "clip": "60.44%",
+      "ssim": "44.22%",
+      "text": "45.19%",
+      "position": "53.49%",
+      "ir": "81.68%",
+      "overall": "59.87%",
+      "date": "2025-01-08",
+      "org": "Anthropic",
+      "tags": ["Claude", "Multimodal", "Commercial"]
+    },
+    {
+      "rank": 3,
+      "model": "Gemini-1.5-pro (Mark)",
+      "clip": "58.33%",
+      "ssim": "43.11%",
+      "text": "42.95%",
+      "position": "51.88%",
+      "ir": "79.92%",
+      "overall": "57.45%",
+      "date": "2025-01-05",
+      "org": "Google",
+      "tags": ["Gemini", "Multimodal", "Commercial"]
+    },
+    {
+      "rank": 4,
+      "model": "Qwen2.5-vl-7B-instruct (Direct)",
+      "clip": "56.22%",
+      "ssim": "41.88%",
+      "text": "40.77%",
+      "position": "49.66%",
+      "ir": "77.15%",
+      "overall": "55.12%",
+      "date": "2025-01-03",
+      "org": "Alibaba",
+      "tags": ["Qwen", "Multimodal", "Open Source"]
+    },
+    {
+      "rank": 5,
+      "model": "GPT-4o (CoT)",
+      "clip": "54.77%",
+      "ssim": "40.55%",
+      "text": "39.44%",
+      "position": "48.22%",
+      "ir": "75.88%",
+      "overall": "53.67%",
+      "date": "2025-01-02",
+      "org": "OpenAI",
+      "tags": ["GPT", "Multimodal", "Commercial"]
+    },
+    {
+      "rank": 6,
+      "model": "Gemini-1.5-flash (Direct)",
+      "clip": "52.88%",
+      "ssim": "39.12%",
+      "text": "37.66%",
+      "position": "46.55%",
+      "ir": "73.44%",
+      "overall": "51.89%",
+      "date": "2024-12-30",
+      "org": "Google",
+      "tags": ["Gemini", "Multimodal", "Commercial"]
+    }
+  ]
+}
