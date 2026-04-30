@@ -9,6 +9,8 @@ This project is configured for a static Cloudflare Pages deployment.
 - Build output directory: `dist/spa`
 - Node version: `22`
 
+Cloudflare Pages Git deployments do not need a deploy command. If the dashboard asks for a deploy command, you are likely configuring a Worker build rather than a Pages project.
+
 The `wrangler.toml` file also declares `pages_build_output_dir = "./dist/spa"`.
 
 ## Deploy from GitHub
