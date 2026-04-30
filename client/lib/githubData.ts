@@ -38,6 +38,7 @@ export interface LeaderboardEntry {
   run_id?: string;
   filename?: string;
   date?: string;
+  model_date?: string;
   org?: string;
   logo?: string[];
   tags?: string[];

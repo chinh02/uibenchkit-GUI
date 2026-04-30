@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+﻿import React, { useState, useRef, useCallback, useEffect } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import Footer from "@/components/Footer";
@@ -47,7 +47,6 @@ import {
   FileImage,
   ChevronLeft,
   ChevronRight,
-  DownloadCloud,
   KeyRound,
   Globe,
 } from "lucide-react";
@@ -56,12 +55,15 @@ import type {
   DCGenPollResponse,
   DCGenReportResponse,
   DCGenHealthResponse,
+  DCGenStopRunResponse,
 } from "@shared/api";
 
 type DemoStage =
   | "idle"
   | "uploading"
   | "processing"
+  | "stopping"
+  | "stopped"
   | "completed"
   | "error";
 
@@ -90,11 +92,11 @@ interface DemoResult {
   runId: string;
   instances: InstanceResult[];
   report: DCGenReportResponse["report"] | null;
-  /** Maps instanceId → data URL of the original uploaded image */
+  /** Maps instanceId -> data URL of the original uploaded image */
   inputImages: Record<string, string>;
 }
 
-// ── Helpers ──────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const IMAGE_EXTS = /\.(png|jpe?g|gif|bmp|webp|svg|tiff?)$/i;
 const HTML_EXTS = /\.(html?|htm)$/i;
 const CSS_EXTS = /\.css$/i;
@@ -133,9 +135,18 @@ function humanFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-// ── Main Component ──────────────────────────────────────────
+function toNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+}
+
+// â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function LiveDemo() {
-  // ── State ───────────────────────────────────────────────
+  // â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [stage, setStage] = useState<DemoStage>("idle");
   const [uploadMode, setUploadMode] = useState<UploadMode>("single");
 
@@ -147,13 +158,19 @@ export default function LiveDemo() {
   const [folderFiles, setFolderFiles] = useState<UploadedFile[]>([]);
   const [folderName, setFolderName] = useState<string | null>(null);
 
+  // Provider & model
+  type Provider = "openai" | "claude" | "gemini" | "openkey" | "other";
+  const [provider, setProvider] = useState<Provider>("gemini");
+  const [modelVersion, setModelVersion] = useState("gemini-2.0-flash");
+  const [customModelName, setCustomModelName] = useState("");
+  const [fetchedModels, setFetchedModels] = useState<string[]>([]);
+  const [fetchingModels, setFetchingModels] = useState(false);
+
   // Shared
-  const [model, setModel] = useState("gemini");
   const [method, setMethod] = useState("dcgen");
   const [referenceHtml, setReferenceHtml] = useState("");
   const [userApiKey, setUserApiKey] = useState("");
   const [userBaseUrl, setUserBaseUrl] = useState("");
-  const [apiConfigOpen, setApiConfigOpen] = useState(false);
   const [referenceHtmlOpen, setReferenceHtmlOpen] = useState(false);
   const [result, setResult] = useState<DemoResult | null>(null);
   const [activeInstanceIdx, setActiveInstanceIdx] = useState(0);
@@ -161,8 +178,11 @@ export default function LiveDemo() {
   const [pollStatus, setPollStatus] = useState<DCGenPollResponse | null>(null);
   const [copied, setCopied] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [downloadingArtifacts, setDownloadingArtifacts] = useState(false);
+  const [currentRunId, setCurrentRunId] = useState<string | null>(null);
+  const [stoppingRun, setStoppingRun] = useState(false);
+  const [stopMessage, setStopMessage] = useState<string | null>(null);
   const [apiHealthy, setApiHealthy] = useState<boolean | null>(null);
-  const [supportedModels, setSupportedModels] = useState<string[]>([]);
   const [supportedMethods, setSupportedMethods] = useState<string[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -172,7 +192,7 @@ export default function LiveDemo() {
   /** Snapshot of input images captured at submit time (avoids stale closures in polling) */
   const inputImagesRef = useRef<Record<string, string>>({});
 
-  // ── Restore persisted results on mount ──────────────────
+  // â”€â”€ Restore persisted results on mount â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     try {
       const saved = sessionStorage.getItem("dcgen-demo-result");
@@ -186,26 +206,23 @@ export default function LiveDemo() {
     }
   }, []);
 
-  // ── Persist results to sessionStorage when they change ─
+  // â”€â”€ Persist results to sessionStorage when they change â”€
   useEffect(() => {
     if (result && stage === "completed") {
       try {
         sessionStorage.setItem("dcgen-demo-result", JSON.stringify(result));
       } catch {
-        // sessionStorage may be full for very large results — ignore
+        // sessionStorage may be full for very large results - ignore
       }
     }
   }, [result, stage]);
 
-  // ── Health check on mount ──────────────────────────────
+  // â”€â”€ Health check on mount â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     fetch("/api/dcgen/health")
       .then((r) => r.json())
       .then((data: DCGenHealthResponse) => {
         setApiHealthy(data.status === "healthy");
-        if (data.supported_model_families) {
-          setSupportedModels(data.supported_model_families);
-        }
         if (data.supported_methods) {
           setSupportedMethods(data.supported_methods);
         }
@@ -213,14 +230,56 @@ export default function LiveDemo() {
       .catch(() => setApiHealthy(false));
   }, []);
 
-  // ── Cleanup polling on unmount ─────────────────────────
+  // â”€â”€ Provider change handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const handleProviderChange = useCallback(
+    (p: Provider) => {
+      setProvider(p);
+      setFetchedModels([]);
+      setUserApiKey("");
+      setUserBaseUrl("");
+      setCustomModelName("");
+      // Pre-fill base_url for OpenKey
+      if (p === "openkey") setUserBaseUrl("https://openkey.cloud/v1");
+    },
+    [],
+  );
+
+  // â”€â”€ Fetch models from provider API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const handleFetchModels = useCallback(async () => {
+    if (!userApiKey.trim()) return;
+    setFetchingModels(true);
+    try {
+      const resp = await fetch("/api/dcgen/list-models", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider,
+          api_key: userApiKey.trim(),
+          ...(userBaseUrl.trim() ? { base_url: userBaseUrl.trim() } : {}),
+        }),
+      });
+      if (!resp.ok) {
+        const err = await resp.json();
+        throw new Error(err.message || "Failed to fetch models");
+      }
+      const data = (await resp.json()) as { models: string[] };
+      setFetchedModels(data.models);
+      if (data.models.length > 0) setModelVersion(data.models[0]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch models");
+    } finally {
+      setFetchingModels(false);
+    }
+  }, [provider, userApiKey, userBaseUrl]);
+
+  // â”€â”€ Cleanup polling on unmount â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     return () => {
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
     };
   }, []);
 
-  // ── Single-image file handling ────────────────────────
+  // â”€â”€ Single-image file handling â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
@@ -268,7 +327,7 @@ export default function LiveDemo() {
     [uploadMode]
   );
 
-  // ── Folder handling ───────────────────────────────────
+  // â”€â”€ Folder handling â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const processFileList = useCallback(async (files: FileList | File[]) => {
     const arr = Array.from(files);
     if (arr.length === 0) return;
@@ -373,7 +432,7 @@ export default function LiveDemo() {
     [processFileList]
   );
 
-  // ── Poll for job completion ────────────────────────────
+  // â”€â”€ Poll for job completion â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const startPolling = useCallback((runId: string) => {
     if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
 
@@ -396,14 +455,24 @@ export default function LiveDemo() {
           pollIntervalRef.current = null;
 
           if (data.status === "completed") {
+            setCurrentRunId(null);
             await fetchResults(runId, data);
+          } else if (data.status === "stopped") {
+            setResult(null);
+            sessionStorage.removeItem("dcgen-demo-result");
+            setStopMessage(
+              `Run ${runId} was stopped. The in-flight image may have finished before cancellation took effect.`
+            );
+            setStage("stopped");
+            setCurrentRunId(null);
           } else {
-            // Run-level failure — clear any stale result from a previous run
+            // Run-level failure - clear any stale result from a previous run
             setResult(null);
             sessionStorage.removeItem("dcgen-demo-result");
             setStage("error");
+            setCurrentRunId(null);
             setError(
-              `Run ${data.status}. Check DCGen server logs for details.`
+              `Run ${data.status}. Check WebBench server logs for details.`
             );
           }
         }
@@ -413,7 +482,7 @@ export default function LiveDemo() {
     }, 3000);
   }, []);
 
-  // ── Fetch results after completion ─────────────────────
+  // â”€â”€ Fetch results after completion â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const fetchResults = async (runId: string, poll: DCGenPollResponse) => {
     try {
       // Get the report
@@ -463,7 +532,7 @@ export default function LiveDemo() {
         const errorMsg =
           poll.failed_details?.[instanceId] ||
           (reportData.report?.results?.instances?.[instanceId] as any)?.error ||
-          "Generation failed — check DCGen server logs for details.";
+          "Generation failed - check WebBench server logs for details.";
         instanceResults.push({
           instanceId,
           status: "failed",
@@ -493,7 +562,30 @@ export default function LiveDemo() {
     }
   };
 
-  // ── Submit (single image) ─────────────────────────────
+  // â”€â”€ Derive effective model + credentials from provider state â”€
+  const getSubmitCredentials = () => {
+    let model: string;
+    let apiKey: string | undefined;
+    let baseUrl: string | undefined;
+
+    if (provider === "other") {
+      model = customModelName.trim();
+      apiKey = userApiKey.trim() || undefined;
+      baseUrl = userBaseUrl.trim() || undefined;
+    } else {
+      // openai, claude, gemini, openkey
+      model = modelVersion;
+      apiKey = userApiKey.trim() || undefined;
+      // Only send base_url for proxy-based providers
+      if (provider === "openkey") {
+        baseUrl = userBaseUrl.trim() || undefined;
+      }
+    }
+
+    return { model, apiKey, baseUrl };
+  };
+
+  // â”€â”€ Submit (single image) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleSubmitSingle = async () => {
     if (!imageFile) {
       setError("Please select an image first");
@@ -504,6 +596,9 @@ export default function LiveDemo() {
     setError(null);
     setResult(null);
     setPollStatus(null);
+    setCurrentRunId(null);
+    setStopMessage(null);
+    setStoppingRun(false);
     sessionStorage.removeItem("dcgen-demo-result");
 
     // Snapshot input image for comparison (before closure goes stale)
@@ -514,18 +609,19 @@ export default function LiveDemo() {
 
       setStage("processing");
 
+      const creds = getSubmitCredentials();
       const resp = await fetch("/api/dcgen/upload-and-submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           image: base64,
-          model,
+          model: creds.model,
           method,
           ...(referenceHtml.trim()
             ? { reference_html: referenceHtml.trim() }
             : {}),
-          ...(userApiKey.trim() ? { user_api_key: userApiKey.trim() } : {}),
-          ...(userBaseUrl.trim() ? { user_base_url: userBaseUrl.trim() } : {}),
+          ...(creds.apiKey ? { user_api_key: creds.apiKey } : {}),
+          ...(creds.baseUrl ? { user_base_url: creds.baseUrl } : {}),
         }),
       });
 
@@ -540,14 +636,16 @@ export default function LiveDemo() {
         throw new Error(data.message || "Failed to launch run");
       }
 
+      setCurrentRunId(data.run_id);
       startPolling(data.run_id);
     } catch (err) {
       setStage("error");
+      setCurrentRunId(null);
       setError(String(err instanceof Error ? err.message : err));
     }
   };
 
-  // ── Submit (folder) ───────────────────────────────────
+  // â”€â”€ Submit (folder) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleSubmitFolder = async () => {
     const images = folderFiles.filter((f) => f.type === "image");
     if (images.length === 0) {
@@ -559,6 +657,9 @@ export default function LiveDemo() {
     setError(null);
     setResult(null);
     setPollStatus(null);
+    setCurrentRunId(null);
+    setStopMessage(null);
+    setStoppingRun(false);
     sessionStorage.removeItem("dcgen-demo-result");
 
     // Snapshot input images for comparison (before closure goes stale)
@@ -574,16 +675,17 @@ export default function LiveDemo() {
     try {
       setStage("processing");
 
+      const creds = getSubmitCredentials();
       const payload = {
         files: folderFiles.map((f) => ({
           path: f.path,
           content: f.content,
           type: f.type,
         })),
-        model,
+        model: creds.model,
         method,
-        ...(userApiKey.trim() ? { user_api_key: userApiKey.trim() } : {}),
-        ...(userBaseUrl.trim() ? { user_base_url: userBaseUrl.trim() } : {}),
+        ...(creds.apiKey ? { user_api_key: creds.apiKey } : {}),
+        ...(creds.baseUrl ? { user_base_url: creds.baseUrl } : {}),
       };
 
       const resp = await fetch("/api/dcgen/upload-folder-and-submit", {
@@ -603,16 +705,18 @@ export default function LiveDemo() {
         throw new Error(data.message || "Failed to launch run");
       }
 
+      setCurrentRunId(data.run_id);
       startPolling(data.run_id);
     } catch (err) {
       setStage("error");
+      setCurrentRunId(null);
       setError(String(err instanceof Error ? err.message : err));
     }
   };
 
   const handleSubmit = uploadMode === "single" ? handleSubmitSingle : handleSubmitFolder;
 
-  // ── Copy HTML to clipboard ────────────────────────────
+  // â”€â”€ Copy HTML to clipboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleCopyHtml = () => {
     const inst = result?.instances[activeInstanceIdx];
     if (!inst?.html) return;
@@ -621,7 +725,7 @@ export default function LiveDemo() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // ── Download helpers ───────────────────────────────────
+  // â”€â”€ Download helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const downloadFile = (content: string | Blob, filename: string, mime = "text/html") => {
     const blob = typeof content === "string" ? new Blob([content], { type: mime }) : content;
     const url = URL.createObjectURL(blob);
@@ -640,19 +744,107 @@ export default function LiveDemo() {
     downloadFile(new Blob([byteArray], { type: "image/png" }), `${inst.instanceId}.png`, "image/png");
   };
 
-  const handleDownloadAll = () => {
-    if (!result) return;
-    for (const inst of result.instances) {
-      // Download HTML
-      downloadFile(inst.html, `${inst.instanceId}.html`);
-      // Download screenshot if available
-      if (inst.screenshotBase64) {
-        downloadScreenshot(inst);
+  const getDownloadFilename = (
+    contentDisposition: string | null,
+    fallback: string
+  ) => {
+    if (!contentDisposition) return fallback;
+
+    const utf8Match = contentDisposition.match(
+      /filename\*\s*=\s*UTF-8''([^;]+)/i
+    );
+    if (utf8Match?.[1]) {
+      try {
+        return decodeURIComponent(utf8Match[1].trim().replace(/["']/g, ""));
+      } catch {
+        return utf8Match[1].trim().replace(/["']/g, "");
       }
+    }
+
+    const plainMatch = contentDisposition.match(
+      /filename\s*=\s*("?)([^";]+)\1/i
+    );
+    if (plainMatch?.[2]) return plainMatch[2].trim();
+
+    return fallback;
+  };
+
+  const handleDownloadArtifacts = async () => {
+    if (!result?.runId || downloadingArtifacts) return;
+
+    setDownloadingArtifacts(true);
+    setError(null);
+
+    try {
+      const resp = await fetch(
+        `/api/dcgen/download-artifacts/${encodeURIComponent(result.runId)}`
+      );
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.message || "Failed to download artifacts");
+      }
+
+      const blob = await resp.blob();
+      const filename = getDownloadFilename(
+        resp.headers.get("content-disposition"),
+        `${result.runId}_artifacts.zip`
+      );
+      downloadFile(blob, filename, "application/zip");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to download artifacts");
+    } finally {
+      setDownloadingArtifacts(false);
     }
   };
 
-  // ── Reset ──────────────────────────────────────────────
+  const handleStopRun = async () => {
+    if (!currentRunId) {
+      setError("No active run is available to stop yet.");
+      return;
+    }
+
+    const runId = currentRunId;
+    setStoppingRun(true);
+    setStage("stopping");
+    setError(null);
+    setStopMessage(null);
+
+    try {
+      const resp = await fetch("/api/dcgen/stop-run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ run_id: runId }),
+      });
+      const data = (await resp.json().catch(() => ({}))) as Partial<DCGenStopRunResponse>;
+
+      if (!resp.ok) {
+        throw new Error(data.message || "Failed to stop run");
+      }
+
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+
+      setCurrentRunId(null);
+      setPollStatus(null);
+      setResult(null);
+      sessionStorage.removeItem("dcgen-demo-result");
+      setStopMessage(
+        data.message ||
+          `Run ${runId} was stopped. The current in-flight image may finish before cancellation fully takes effect.`
+      );
+      setStage("stopped");
+    } catch (err) {
+      setStage("processing");
+      setError(err instanceof Error ? err.message : "Failed to stop run");
+    } finally {
+      setStoppingRun(false);
+    }
+  };
+
+  // â”€â”€ Reset â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleReset = () => {
     setStage("idle");
     setImagePreview(null);
@@ -663,6 +855,9 @@ export default function LiveDemo() {
     setActiveInstanceIdx(0);
     setError(null);
     setPollStatus(null);
+    setCurrentRunId(null);
+    setStoppingRun(false);
+    setStopMessage(null);
     setReferenceHtml("");
     setReferenceHtmlOpen(false);
     if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
@@ -672,13 +867,19 @@ export default function LiveDemo() {
     sessionStorage.removeItem("dcgen-demo-result");
   };
 
-  // ── Derived state ────────────────────────────────────
+  // â”€â”€ Derived state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const isProcessing = stage === "uploading" || stage === "processing";
-  const canSubmitSingle = !!imageFile && !isProcessing && apiHealthy;
+  const isBusy = isProcessing || stage === "stopping";
+  const hasValidModel =
+    provider === "other" ? !!(customModelName.trim() && userApiKey.trim() && userBaseUrl.trim()) :
+    provider === "openkey" ? !!(userApiKey.trim() && userBaseUrl.trim() && fetchedModels.length > 0) :
+    !!(userApiKey.trim() && fetchedModels.length > 0);
+  const canSubmitSingle = !!imageFile && !isBusy && apiHealthy && hasValidModel;
   const canSubmitFolder =
     folderFiles.filter((f) => f.type === "image").length > 0 &&
-    !isProcessing &&
-    apiHealthy;
+    !isBusy &&
+    apiHealthy &&
+    hasValidModel;
   const canSubmit = uploadMode === "single" ? canSubmitSingle : canSubmitFolder;
 
   const progressPercent =
@@ -706,11 +907,11 @@ export default function LiveDemo() {
     <div className="min-h-screen bg-background">
       <Sidebar />
       <Header />
-      <div className="ml-64 pt-28 pb-12">
+      <div className="lg:ml-64 pt-28 pb-12 min-w-0">
         <main className="flex justify-center">
           <div className="w-full max-w-6xl px-8 lg:px-12">
             <div className="flex flex-col gap-6 sm:gap-8">
-              {/* ─── Introduction Card ─────────────────────── */}
+              {/* â”€â”€â”€ Introduction Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
               <div className="flex flex-col sm:flex-row items-start gap-4 p-4 sm:p-6 rounded-xl border border-amber-200 bg-white/70">
                 <div className="flex w-10 h-10 items-center justify-center rounded-full bg-amber-100 flex-shrink-0">
                   <Sparkles
@@ -720,14 +921,14 @@ export default function LiveDemo() {
                 </div>
                 <div className="flex flex-col gap-1 flex-1">
                   <h2 className="text-amber-700 font-bold text-base sm:text-lg leading-7">
-                    Live Demo — Image to HTML Code
+                    Live Demo - Image to HTML Code
                   </h2>
                   <p className="text-text-secondary text-sm sm:text-base leading-relaxed">
                     Upload a screenshot or an{" "}
                     <strong>entire folder of images &amp; HTML/CSS</strong>,
-                    select a model and method, and watch DCGen automatically
+                    select a model and method, and watch WebBench automatically
                     generate HTML + Tailwind CSS code. This demo connects to the
-                    DCGen API backend to run the full pipeline: image
+                    WebBench backend to run the full pipeline: image
                     segmentation, code generation, assembly, and evaluation.
                   </p>
                   {/* API status badge */}
@@ -740,21 +941,21 @@ export default function LiveDemo() {
                     ) : apiHealthy ? (
                       <Badge className="gap-1.5 bg-green-100 text-green-700 border-green-300 hover:bg-green-100">
                         <CheckCircle2 className="w-3 h-3" />
-                        DCGen API Connected
+                        WebBench API Connected
                       </Badge>
                     ) : (
                       <Badge variant="destructive" className="gap-1.5">
                         <XCircle className="w-3 h-3" />
-                        DCGen API Offline — Start the server at port 5000
+                        WebBench API Offline - Start the server at port 5000
                       </Badge>
                     )}
                   </div>
                 </div>
               </div>
 
-              {/* ─── Main Demo Area ────────────────────────── */}
+              {/* â”€â”€â”€ Main Demo Area â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* ── LEFT: Input Panel ───────────────────── */}
+                {/* â”€â”€ LEFT: Input Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
                 <div className="flex flex-col gap-4">
                   <h3 className="font-display font-bold text-lg text-text-primary flex items-center gap-2">
                     <Upload className="w-5 h-5 text-amber-600" />
@@ -789,7 +990,7 @@ export default function LiveDemo() {
                     </button>
                   </div>
 
-                  {/* ── Single image drop zone ─────────────── */}
+                  {/* â”€â”€ Single image drop zone â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
                   {uploadMode === "single" && (
                     <>
                       <div
@@ -825,7 +1026,7 @@ export default function LiveDemo() {
                               Drop a webpage screenshot here
                             </p>
                             <p className="text-xs text-gray-400">
-                              or click to browse — PNG, JPG supported
+                              or click to browse - PNG, JPG supported
                             </p>
                           </div>
                         )}
@@ -845,7 +1046,7 @@ export default function LiveDemo() {
                             <span className="text-sm text-text-secondary group-hover:text-amber-700 flex-1">
                               Provide original HTML{" "}
                               <span className="text-xs text-gray-400">
-                                (optional — enables code similarity &amp;
+                                (optional - enables code similarity &amp;
                                 fine-grained metrics)
                               </span>
                             </span>
@@ -914,7 +1115,7 @@ export default function LiveDemo() {
                             <textarea
                               value={referenceHtml}
                               onChange={(e) => setReferenceHtml(e.target.value)}
-                              placeholder={`Paste the ground-truth HTML source here, or click "Upload .html file" above.\n\nThis enables the evaluation pipeline to compute:\n  • Code similarity (fuzzy match)\n  • Fine-grained metrics (block match, text, position, color)`}
+                              placeholder={`Paste the ground-truth HTML source here, or click "Upload .html file" above.\n\nThis enables the evaluation pipeline to compute:\n  - Code similarity (fuzzy match)\n  - Fine-grained metrics (block match, text, position, color)`}
                               className="w-full h-48 px-3 py-2 text-xs font-mono leading-relaxed resize-y bg-white text-gray-800 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-300/50"
                               spellCheck={false}
                             />
@@ -924,7 +1125,7 @@ export default function LiveDemo() {
                     </>
                   )}
 
-                  {/* ── Folder drop zone ───────────────────── */}
+                  {/* â”€â”€ Folder drop zone â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
                   {uploadMode === "folder" && (
                     <>
                       <div
@@ -1067,25 +1268,22 @@ export default function LiveDemo() {
                     </>
                   )}
 
-                  {/* Model & Method selectors */}
+                  {/* Provider & Method selectors */}
                   <div className="flex gap-3">
                     <div className="flex-1">
                       <label className="text-xs font-semibold text-text-secondary mb-1.5 block uppercase tracking-wider">
-                        Model
+                        Provider
                       </label>
-                      <Select value={model} onValueChange={setModel}>
+                      <Select value={provider} onValueChange={(v) => handleProviderChange(v as Provider)}>
                         <SelectTrigger className="bg-white">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {(supportedModels.length > 0
-                            ? supportedModels
-                            : ["gemini", "gpt4", "claude", "qwen"]
-                          ).map((m) => (
-                            <SelectItem key={m} value={m}>
-                              {m}
-                            </SelectItem>
-                          ))}
+                          <SelectItem value="openai">OpenAI</SelectItem>
+                          <SelectItem value="claude">Claude (Anthropic)</SelectItem>
+                          <SelectItem value="gemini">Gemini (Google)</SelectItem>
+                          <SelectItem value="openkey">OpenKey</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1111,59 +1309,30 @@ export default function LiveDemo() {
                     </div>
                   </div>
 
-                  {/* API Configuration (optional) */}
-                  <Collapsible
-                    open={apiConfigOpen}
-                    onOpenChange={setApiConfigOpen}
-                  >
-                    <CollapsibleTrigger asChild>
-                      <button
-                        type="button"
-                        className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg border border-dashed border-gray-300 bg-white/60 hover:bg-amber-50/40 hover:border-amber-300 transition-colors text-left group"
-                      >
-                        <KeyRound className="w-4 h-4 text-gray-400 group-hover:text-amber-600 flex-shrink-0" />
-                        <span className="text-sm text-text-secondary group-hover:text-amber-700 flex-1">
-                          API Configuration{" "}
-                          <span className="text-xs text-gray-400">
-                            (optional — provide your own API key &amp; base URL)
-                          </span>
-                        </span>
-                        {userApiKey.trim() && (
-                          <Badge
-                            variant="outline"
-                            className="text-[10px] px-1.5 py-0 h-5 bg-green-50 border-green-200 text-green-700"
-                          >
-                            Key set
-                          </Badge>
-                        )}
-                        <ChevronDown
-                          className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
-                            apiConfigOpen ? "rotate-180" : ""
-                          }`}
+                  {/* Credentials & model selection */}
+                  <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
+                      {/* API Key */}
+                      <div>
+                        <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary mb-1.5 uppercase tracking-wider">
+                          <KeyRound className="w-3 h-3" />
+                          API Key
+                        </label>
+                        <input
+                          type="password"
+                          value={userApiKey}
+                          onChange={(e) => setUserApiKey(e.target.value)}
+                          placeholder={
+                            provider === "openai" ? "sk-..." :
+                            provider === "claude" ? "sk-ant-..." :
+                            provider === "gemini" ? "AIza..." :
+                            "Your API key"
+                          }
+                          className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-amber-300/50 focus:border-amber-300 font-mono placeholder:text-gray-300"
                         />
-                      </button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-2">
-                      <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
-                        {/* API Key */}
-                        <div>
-                          <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary mb-1.5 uppercase tracking-wider">
-                            <KeyRound className="w-3 h-3" />
-                            API Key
-                          </label>
-                          <input
-                            type="password"
-                            value={userApiKey}
-                            onChange={(e) => setUserApiKey(e.target.value)}
-                            placeholder="sk-... or your provider's API key"
-                            className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-amber-300/50 focus:border-amber-300 font-mono placeholder:text-gray-300"
-                          />
-                          <p className="text-[11px] text-gray-400 mt-1">
-                            Overrides the server's default key for this model.
-                            Your key is sent to the DCGen backend only — never stored.
-                          </p>
-                        </div>
-                        {/* Base URL */}
+                      </div>
+
+                      {/* Base URL - shown for openkey and other */}
+                      {(provider === "openkey" || provider === "other") && (
                         <div>
                           <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary mb-1.5 uppercase tracking-wider">
                             <Globe className="w-3 h-3" />
@@ -1173,31 +1342,77 @@ export default function LiveDemo() {
                             type="url"
                             value={userBaseUrl}
                             onChange={(e) => setUserBaseUrl(e.target.value)}
-                            placeholder="https://api.openai.com/v1"
+                            placeholder="https://api.example.com/v1"
                             className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-amber-300/50 focus:border-amber-300 font-mono placeholder:text-gray-300"
                           />
-                          <p className="text-[11px] text-gray-400 mt-1">
-                            Optional. Use for OpenAI-compatible providers (e.g.
-                            Together, Fireworks, OpenRouter). Leave blank for native
-                            provider APIs (Gemini, Anthropic, Qwen).
-                          </p>
                         </div>
-                        {/* Quick clear */}
-                        {(userApiKey.trim() || userBaseUrl.trim()) && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setUserApiKey("");
-                              setUserBaseUrl("");
-                            }}
-                            className="text-xs text-red-400 hover:text-red-600 transition-colors"
-                          >
-                            Clear credentials
-                          </button>
-                        )}
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
+                      )}
+
+                      {/* Model selection */}
+                      {provider === "other" ? (
+                        /* Free text input for "other" provider */
+                        <div>
+                          <label className="text-xs font-semibold text-text-secondary mb-1.5 block uppercase tracking-wider">
+                            Model Name
+                          </label>
+                          <input
+                            type="text"
+                            value={customModelName}
+                            onChange={(e) => setCustomModelName(e.target.value)}
+                            placeholder="e.g. deepseek-chat, qwen-vl-max"
+                            className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-amber-300/50 focus:border-amber-300 font-mono placeholder:text-gray-300"
+                          />
+                        </div>
+                      ) : (
+                        /* Fetch + dropdown for known providers */
+                        <div>
+                          <div className="flex items-end gap-2">
+                            <div className="flex-1">
+                              <label className="text-xs font-semibold text-text-secondary mb-1.5 block uppercase tracking-wider">
+                                Model
+                              </label>
+                              {fetchedModels.length > 0 ? (
+                                <Select value={modelVersion} onValueChange={setModelVersion}>
+                                  <SelectTrigger className="bg-white">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {fetchedModels.map((m) => (
+                                      <SelectItem key={m} value={m}>
+                                        {m}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              ) : (
+                                <p className="text-sm text-gray-400 py-2">
+                                  Enter your API key, then click Fetch Models
+                                </p>
+                              )}
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={!userApiKey.trim() || fetchingModels}
+                              onClick={handleFetchModels}
+                              className="gap-1.5 shrink-0"
+                            >
+                              {fetchingModels ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <RefreshCw className="w-3.5 h-3.5" />
+                              )}
+                              {fetchingModels ? "Fetching..." : "Fetch Models"}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      <p className="text-[11px] text-gray-400">
+                        Your key is sent to the WebBench backend only - never stored.
+                      </p>
+                  </div>
 
                   {/* Action buttons */}
                   <div className="flex gap-3">
@@ -1207,7 +1422,12 @@ export default function LiveDemo() {
                       className="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-semibold gap-2"
                       size="lg"
                     >
-                      {isProcessing ? (
+                      {stage === "stopping" ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Stopping...
+                        </>
+                      ) : isProcessing ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
                           Processing...
@@ -1221,12 +1441,28 @@ export default function LiveDemo() {
                         </>
                       )}
                     </Button>
+                    {currentRunId && (isProcessing || stage === "stopping") && (
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        onClick={handleStopRun}
+                        disabled={stoppingRun}
+                        className="gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                      >
+                        {stoppingRun ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <XCircle className="w-4 h-4" />
+                        )}
+                        Stop Run
+                      </Button>
+                    )}
                     {(imageFile || result || folderFiles.length > 0) && (
                       <Button
                         variant="outline"
                         size="lg"
                         onClick={handleReset}
-                        disabled={isProcessing}
+                        disabled={isBusy}
                         className="gap-2"
                       >
                         <RefreshCw className="w-4 h-4" />
@@ -1244,7 +1480,7 @@ export default function LiveDemo() {
                   )}
                 </div>
 
-                {/* ── RIGHT: Output Panel ──────────────────── */}
+                {/* â”€â”€ RIGHT: Output Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
                 <div className="flex flex-col gap-4">
                   <h3 className="font-display font-bold text-lg text-text-primary flex items-center gap-2">
                     <ArrowRight className="w-5 h-5 text-amber-600" />
@@ -1252,14 +1488,16 @@ export default function LiveDemo() {
                   </h3>
 
                   {/* Processing state */}
-                  {isProcessing && (
+                  {(isProcessing || stage === "stopping") && (
                     <div className="border-2 border-dashed border-amber-300 bg-amber-50/30 rounded-xl min-h-[300px] flex flex-col items-center justify-center gap-4 p-8">
                       <div className="relative">
                         <Loader2 className="w-12 h-12 text-amber-500 animate-spin" />
                       </div>
                       <div className="text-center">
                         <p className="font-semibold text-amber-700">
-                          {stage === "uploading"
+                          {stage === "stopping"
+                            ? "Stopping run..."
+                            : stage === "uploading"
                             ? "Uploading files..."
                             : "Generating HTML code..."}
                         </p>
@@ -1295,10 +1533,25 @@ export default function LiveDemo() {
                           </div>
                         )}
                         <p className="text-xs text-gray-400 mt-2">
-                          This may take 30s to a few minutes depending on
-                          complexity
+                          {stage === "stopping"
+                            ? "The current in-flight model request may finish before cancellation fully takes effect."
+                            : "This may take 30s to a few minutes depending on complexity"}
                         </p>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Stopped state */}
+                  {stage === "stopped" && (
+                    <div className="border-2 border-dashed border-amber-300 bg-amber-50/30 rounded-xl min-h-[300px] flex flex-col items-center justify-center gap-3 p-8 text-center">
+                      <XCircle className="w-12 h-12 text-amber-500" strokeWidth={1.5} />
+                      <p className="text-sm font-semibold text-amber-700">
+                        Run stopped
+                      </p>
+                      <p className="text-xs text-gray-500 max-w-md">
+                        {stopMessage ||
+                          "The run was stopped. The current in-flight image may have finished before cancellation fully took effect."}
+                      </p>
                     </div>
                   )}
 
@@ -1347,7 +1600,7 @@ export default function LiveDemo() {
                               {allFailed
                                 ? "All instances failed"
                                 : failedCount > 0
-                                  ? `Generation complete — ${failedCount} failed`
+                                  ? `Generation complete - ${failedCount} failed`
                                   : "Generation complete!"}
                             </span>
                             <span
@@ -1360,7 +1613,7 @@ export default function LiveDemo() {
                               }`}
                             >
                               {completedCount}/{result.instances.length}{" "}
-                              succeeded — Run: {result.runId}
+                              succeeded - Run: {result.runId}
                             </span>
                           </div>
                         );
@@ -1418,16 +1671,6 @@ export default function LiveDemo() {
                             }
                           >
                             <ChevronRight className="w-4 h-4" />
-                          </Button>
-                          {/* Download all */}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 gap-1 text-xs ml-1"
-                            onClick={handleDownloadAll}
-                          >
-                            <DownloadCloud className="w-3 h-3" />
-                            All
                           </Button>
                         </div>
                       )}
@@ -1511,6 +1754,20 @@ export default function LiveDemo() {
                               >
                                 <Download className="w-3 h-3" />
                                 HTML
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-1.5 text-xs h-7"
+                                onClick={handleDownloadArtifacts}
+                                disabled={downloadingArtifacts}
+                              >
+                                {downloadingArtifacts ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <FolderOpen className="w-3 h-3" />
+                                )}
+                                Artifacts
                               </Button>
                             </div>
 
@@ -1777,20 +2034,69 @@ export default function LiveDemo() {
                                     </div>
                                   )}
 
-                                {/* Cost estimate */}
-                                {result.report.cost_estimate && (
+                                {/* Token usage */}
+                                {result.report.token_usage && (
                                   <div className="mt-4 pt-3 border-t">
                                     <h5 className="text-xs font-semibold text-text-secondary mb-2 uppercase tracking-wider">
-                                      Cost Estimate
+                                      Total Token Usage
                                     </h5>
-                                    <p className="text-sm text-text-primary">
-                                      $
-                                      {(
-                                        (result.report.cost_estimate as any)
-                                          .total_cost_usd ?? 0
-                                      ).toFixed(4)}{" "}
-                                      USD
-                                    </p>
+                                    {(() => {
+                                      const usage = result.report
+                                        .token_usage as Record<string, unknown>;
+                                      const promptTokens = toNumber(
+                                        usage.total_prompt_tokens
+                                      );
+                                      const responseTokens = toNumber(
+                                        usage.total_response_tokens
+                                      );
+                                      const explicitTotal = toNumber(
+                                        usage.total_tokens
+                                      );
+                                      const callCount = toNumber(
+                                        usage.call_count
+                                      );
+
+                                      const totalTokens =
+                                        explicitTotal ??
+                                        (promptTokens !== null ||
+                                        responseTokens !== null
+                                          ? (promptTokens ?? 0) +
+                                            (responseTokens ?? 0)
+                                          : null);
+
+                                      return (
+                                        <>
+                                          <p className="text-sm text-text-primary">
+                                            {totalTokens !== null
+                                              ? `${Math.round(
+                                                  totalTokens
+                                                ).toLocaleString()} tokens`
+                                              : "Token usage unavailable"}
+                                          </p>
+                                          {(promptTokens !== null ||
+                                            responseTokens !== null ||
+                                            callCount !== null) && (
+                                            <p className="text-xs text-text-secondary mt-1">
+                                              {promptTokens !== null
+                                                ? `Prompt: ${Math.round(
+                                                    promptTokens
+                                                  ).toLocaleString()}`
+                                                : "Prompt: -"}
+                                              {" • "}
+                                              {responseTokens !== null
+                                                ? `Response: ${Math.round(
+                                                    responseTokens
+                                                  ).toLocaleString()}`
+                                                : "Response: -"}
+                                              {callCount !== null &&
+                                                ` • Calls: ${Math.round(
+                                                  callCount
+                                                ).toLocaleString()}`}
+                                            </p>
+                                          )}
+                                        </>
+                                      );
+                                    })()}
                                   </div>
                                 )}
                               </div>
@@ -1815,7 +2121,7 @@ export default function LiveDemo() {
                 </div>
               </div>
 
-              {/* ─── How it works ───────────────────────────── */}
+              {/* â”€â”€â”€ How it works â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                 <StepCard
                   step={1}
@@ -1830,23 +2136,23 @@ export default function LiveDemo() {
                 <StepCard
                   step={3}
                   title="Get HTML + Metrics"
-                  description="DCGen generates HTML + Tailwind CSS code for each image, takes screenshots, and evaluates visual & code similarity automatically."
+                  description="WebBench generates HTML + Tailwind CSS code for each image, takes screenshots, and evaluates visual and code similarity automatically."
                 />
               </div>
             </div>
           </div>
         </main>
-        <Footer />
       </div>
+      <Footer />
 
-      {/* ─── Fullscreen Lightbox Dialog ─────────────────── */}
+      {/* â”€â”€â”€ Fullscreen Lightbox Dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
         <DialogContent className="max-w-[90vw] w-full max-h-[90vh] p-0 overflow-hidden">
           <DialogHeader className="px-6 pt-5 pb-3 border-b">
             <DialogTitle className="text-sm font-semibold flex items-center gap-2">
               <Eye className="w-4 h-4 text-amber-600" />
               {activeInstance
-                ? `Preview — ${activeInstance.instanceId}`
+                ? `Preview - ${activeInstance.instanceId}`
                 : "Preview"}
             </DialogTitle>
           </DialogHeader>
@@ -1919,7 +2225,7 @@ export default function LiveDemo() {
   );
 }
 
-// ── Subcomponents ────────────────────────────────────────────
+// â”€â”€ Subcomponents â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function MetricCard({
   label,
@@ -1969,3 +2275,4 @@ function StepCard({
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-export default function Footer() {
+﻿export default function Footer() {
   return (
     <footer className="flex flex-col items-start self-stretch border-t border-amber-200/50 bg-card backdrop-blur-xl px-4 sm:px-8 lg:px-20 ml-64">
       <div className="flex flex-col items-start gap-8 self-stretch max-w-[1280px] px-4 sm:px-8 py-8 sm:py-12 mx-auto w-full">
@@ -12,11 +12,11 @@ export default function Footer() {
               <div className="flex flex-col justify-center">
                 <div className="pb-1">
                   <div className="font-display text-xl font-bold leading-5 text-text-primary">
-                    WebPAIBench
+                    WebBench
                   </div>
                 </div>
                 <div className="text-text-muted font-medium text-xs leading-4 tracking-[0.3px]">
-                  Web AI Benchmarks Leaderboard
+                  Unified design-to-code benchmark platform
                 </div>
               </div>
             </div>
@@ -44,18 +44,6 @@ export default function Footer() {
               >
                 Design2Code
               </a>
-              <a
-                href="/interaction2code"
-                className="text-text-secondary text-sm leading-5 hover:text-amber-600 transition-colors"
-              >
-                Interaction2Code
-              </a>
-              <a
-                href="/mrweb"
-                className="text-text-secondary text-sm leading-5 hover:text-amber-600 transition-colors"
-              >
-                MRWeb
-              </a>
             </div>
           </div>
 
@@ -65,18 +53,6 @@ export default function Footer() {
               Resources
             </h4>
             <div className="flex flex-col gap-2 self-stretch">
-              <a
-                href="/paper"
-                className="text-text-secondary text-sm leading-5 hover:text-amber-600 transition-colors"
-              >
-                Paper
-              </a>
-              <a
-                href="/docs"
-                className="text-text-secondary text-sm leading-5 hover:text-amber-600 transition-colors"
-              >
-                Documentation
-              </a>
               <a
                 href="/live-demo"
                 className="text-text-secondary text-sm leading-5 hover:text-amber-600 transition-colors"
@@ -101,12 +77,6 @@ export default function Footer() {
             </h4>
             <div className="flex flex-col gap-2 self-stretch">
               <a
-                href="/contact"
-                className="text-text-secondary text-sm leading-5 hover:text-amber-600 transition-colors"
-              >
-                Contact Us
-              </a>
-              <a
                 href="/citations"
                 className="text-text-secondary text-sm leading-5 hover:text-amber-600 transition-colors"
               >
@@ -125,10 +95,11 @@ export default function Footer() {
         {/* Copyright */}
         <div className="flex flex-col items-center self-stretch pt-8 border-t border-amber-200/50">
           <p className="text-text-muted text-center text-sm leading-5">
-            © 2025 WebPAIBench. All rights reserved.
+            (c) 2025 WebBench. All rights reserved.
           </p>
         </div>
       </div>
     </footer>
   );
 }
+

@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { FileText, Github, Database } from "lucide-react";
 
 // Page configuration with title, subtitle, and links
@@ -12,25 +12,11 @@ interface PageConfig {
 
 const pageConfigs: Record<string, PageConfig> = {
   '/': {
-    title: 'WebPAIBench',
-    subtitle: 'Web AI Benchmarks for Code Generation',
+    title: 'WebBench',
+    subtitle: 'Unified Benchmarking for Design-to-Code Generation',
     paperUrl: 'https://arxiv.org/abs/YOUR_PAPER_ID',
     githubUrl: 'https://github.com/chinh02/webpai-experiment',
     datasetUrl: 'https://huggingface.co/datasets/YOUR_DATASET',
-  },
-  '/interaction2code': {
-    title: 'Interaction2Code',
-    subtitle: 'Interaction2Code:\nHow Far Are We From Automatic Interactive Webpage Generation?',
-    paperUrl: 'https://arxiv.org/pdf/2411.03292',
-    githubUrl: 'https://github.com/WebPAI/Interaction2Code',
-    datasetUrl: 'https://huggingface.co/datasets/whale99/Interaction2Code',
-  },
-  '/mrweb': {
-    title: 'MRWeb',
-    subtitle: 'MRWeb: An Exploration of Generating\n Multi-Page Resource-Aware Web Codefrom UI Designs',
-    paperUrl: 'https://arxiv.org/abs/2412.15310',
-    githubUrl: 'https://github.com/WebPAI/MRWeb',
-    datasetUrl: 'https://github.com/WebPAI/MRWeb/tree/main/dataset_collection/all_data',
   },
   '/dcgen': {
     title: 'DCGen',
@@ -46,36 +32,9 @@ const pageConfigs: Record<string, PageConfig> = {
     githubUrl: 'https://github.com/NoviScl/Design2Code',
     datasetUrl: 'https://huggingface.co/datasets/SALT-NLP/Design2Code',
   },
-  '/designbench': {
-    title: 'DesignBench',
-    subtitle: 'DesignBench: A Comprehensive Benchmark\nfor MLLM-based Front-end Code Generation',
-    paperUrl: 'https://arxiv.org/abs/2506.06251',
-    githubUrl: 'https://github.com/WebPAI/DesignBench',
-    datasetUrl: 'https://drive.google.com/drive/folders/1gCeg4LqO7VsOSpB70iMnKbNR8gfzUot_',
-  },
-  '/paper': {
-    title: 'Paper',
-    subtitle: 'Research publications and academic papers',
-  },
-  '/docs': {
-    title: 'Documentation',
-    subtitle: 'Guides and API documentation',
-  },
-  '/blog': {
-    title: 'Blog',
-    subtitle: 'Latest updates and insights',
-  },
-  '/contact': {
-    title: 'Contact',
-    subtitle: 'Get in touch with the team',
-  },
   '/citations': {
     title: 'Citations',
     subtitle: 'How to cite our work',
-  },
-  '/press': {
-    title: 'Press',
-    subtitle: 'Media coverage and press releases',
   },
   '/submit': {
     title: 'Submit',
@@ -83,7 +42,7 @@ const pageConfigs: Record<string, PageConfig> = {
   },
   '/live-demo': {
     title: 'Live Demo',
-    subtitle: 'Image to HTML Code Generation with DCGen',
+    subtitle: 'Image-to-Code Generation with WebBench',
     paperUrl: 'https://arxiv.org/abs/2406.16386',
     githubUrl: 'https://github.com/WebPAI/DCGen',
   },
@@ -100,16 +59,11 @@ export default function Header() {
   const config = getPageConfig();
 
   return (
-    <div className="fixed top-0 left-64 right-0 z-50" style={{ backgroundColor: '#de7a59' }}>
-      <div className="px-8 lg:px-12">
+    <div className="fixed top-0 left-0 lg:left-64 right-0 z-50" style={{ backgroundColor: '#de7a59' }}>
+      <div className="px-4 sm:px-6 lg:px-12">
         <div className="flex items-center justify-between py-5">
-          {/* Logo and Title */}
+          {/* Title */}
           <div className="flex items-center gap-5">
-            <Link to="/" className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-xl overflow-hidden flex items-center justify-center shadow-md">
-                <img src="/logo.jpeg" alt="WebPAIBench Logo" className="w-full h-full object-cover" />
-              </div>
-            </Link>
             <div className="flex flex-col">
               <h1 className="font-display text-3xl font-bold text-white">
                 {config.title}
@@ -164,3 +118,5 @@ export default function Header() {
     </div>
   );
 }
+
+

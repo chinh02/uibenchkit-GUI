@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Shared code between client and server
  * Useful to share types between client and server
  * and/or small pure JS functions that can be used on both client and server
@@ -12,7 +12,7 @@ export interface DemoResponse {
 }
 
 // ============================================================
-// DCGen Demo API Types
+// WebBench demo API types
 // ============================================================
 
 /** Response from POST /api/dcgen/submit */
@@ -26,6 +26,16 @@ export interface DCGenSubmitResponse {
   dataset?: string;
 }
 
+/** Response from POST /api/dcgen/stop-run */
+export interface DCGenStopRunResponse {
+  message: string;
+  run_id: string;
+  completed_instances?: number;
+  stopped_instances?: number;
+  skipped_instances?: number;
+  evaluation_started?: boolean;
+}
+
 /** Response from GET /api/dcgen/poll */
 export interface DCGenPollResponse {
   run_id: string;
@@ -37,7 +47,7 @@ export interface DCGenPollResponse {
   completed: string[];
   pending: string[];
   failed: string[];
-  /** Maps failed instanceId → error message */
+  /** Maps failed instanceId -> error message */
   failed_details?: Record<string, string>;
   evaluation?: Record<string, unknown>;
   cost_estimate?: Record<string, unknown>;
@@ -82,7 +92,7 @@ export interface DCGenHealthResponse {
   version: string;
   supported_methods: string[];
   supported_model_families: string[];
-  supported_model_versions: Record<string, string[]>;
+  supported_model_versions: Record<string, { default: string; versions: string[] }>;
   supported_datasets: string[];
 }
 
@@ -102,3 +112,5 @@ export interface DCGenResultImageResponse {
 export interface DCGenResultHtmlResponse {
   html: string;
 }
+
+

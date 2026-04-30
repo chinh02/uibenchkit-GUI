@@ -55,15 +55,55 @@ export function CompareModelsDialog({
   };
 
   const allMetricKeys = getAllMetricKeys();
-  
-  // State for selected metrics (defaults to all)
-  const [selectedMetrics, setSelectedMetrics] = useState<Set<string>>(new Set(allMetricKeys));
+
+  // Metric presets for quick analysis
+  const metricPresets: { label: string; description: string; keys: string[] }[] = [
+    {
+      label: 'Key Metrics',
+      description: 'Core evaluation metrics (recommended)',
+      keys: ['clip_all', 'code_similarity_all', 'block_match_all', 'text_all', 'position_all', 'color_all', 'fg_clip_all'],
+    },
+    {
+      label: 'Visual Similarity',
+      description: 'Image-level visual comparison',
+      keys: ['clip_all', 'clip', 'fg_clip_all', 'fg_clip'],
+    },
+    {
+      label: 'Fine-Grained',
+      description: 'Element-level design accuracy',
+      keys: ['block_match_all', 'text_all', 'position_all', 'color_all', 'fg_clip_all'],
+    },
+    {
+      label: 'Code Quality',
+      description: 'Source code comparison',
+      keys: ['code_similarity_all', 'code_similarity'],
+    },
+    {
+      label: 'Token Usage',
+      description: 'Cost & efficiency metrics',
+      keys: ['vision_prompt_tokens_per_instance', 'text_prompt_tokens_per_instance', 'response_tokens_per_instance'],
+    },
+    {
+      label: 'All Metrics',
+      description: 'Every available metric',
+      keys: allMetricKeys,
+    },
+  ];
+
+  // Default to "Key Metrics" preset — only metrics that actually exist in the data
+  const getDefaultMetrics = () => {
+    const keyMetrics = metricPresets[0].keys;
+    return new Set(keyMetrics.filter(k => allMetricKeys.includes(k)));
+  };
+
+  // State for selected metrics
+  const [selectedMetrics, setSelectedMetrics] = useState<Set<string>>(getDefaultMetrics());
   const [showMetricSelector, setShowMetricSelector] = useState(false);
 
-  // Update selected metrics when dialog opens or models change
+  // Reset to default preset when dialog opens or models change
   useEffect(() => {
     if (open) {
-      setSelectedMetrics(new Set(allMetricKeys));
+      setSelectedMetrics(getDefaultMetrics());
     }
   }, [open, selectedModels]);
 
@@ -77,6 +117,10 @@ export function CompareModelsDialog({
       }
       return newSet;
     });
+  };
+
+  const applyPreset = (preset: typeof metricPresets[number]) => {
+    setSelectedMetrics(new Set(preset.keys.filter(k => allMetricKeys.includes(k))));
   };
 
   const selectAllMetrics = () => setSelectedMetrics(new Set(allMetricKeys));
@@ -536,11 +580,36 @@ export function CompareModelsDialog({
           </div>
         </DialogHeader>
 
-        {/* Metric Selector */}
+        {/* Quick Presets — always visible */}
+        <div className="flex flex-wrap items-center gap-2 mb-2">
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider mr-1">Quick select:</span>
+          {metricPresets.map((preset) => {
+            const presetSet = new Set(preset.keys.filter(k => allMetricKeys.includes(k)));
+            const isActive = presetSet.size > 0 &&
+              presetSet.size === selectedMetrics.size &&
+              [...presetSet].every(k => selectedMetrics.has(k));
+            return (
+              <button
+                key={preset.label}
+                onClick={() => applyPreset(preset)}
+                title={preset.description}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                  isActive
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                }`}
+              >
+                {preset.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Metric Selector (expandable) */}
         {showMetricSelector && (
           <div className="border rounded-lg p-4 bg-gray-50 mb-4">
             <div className="flex items-center justify-between mb-3">
-              <span className="font-semibold text-sm text-gray-700">Select metrics to compare:</span>
+              <span className="font-semibold text-sm text-gray-700">Individual metric selection:</span>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={selectAllMetrics}>
                   Select All

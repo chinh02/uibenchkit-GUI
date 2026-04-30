@@ -1,4 +1,4 @@
-import "dotenv/config";
+﻿import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
@@ -11,7 +11,10 @@ import {
   handleDCGenReport,
   handleDCGenResultImage,
   handleDCGenResultHtml,
+  handleDCGenDownloadArtifacts,
   handleDCGenUploadFolderAndSubmit,
+  handleDCGenListModels,
+  handleDCGenStopRun,
 } from "./routes/dcgen-proxy";
 
 export function createServer() {
@@ -33,15 +36,19 @@ export function createServer() {
   // GitHub proxy for fetching private repo data (replaces Netlify function)
   app.get("/.netlify/functions/github-proxy", handleGitHubProxy);
 
-  // ── DCGen Demo API proxy ──────────────────────────────────
+  // WebBench demo API proxy
   app.get("/api/dcgen/health", handleDCGenHealth);
   app.post("/api/dcgen/submit", handleDCGenSubmit);
   app.post("/api/dcgen/upload-and-submit", handleDCGenUploadAndSubmit);
   app.post("/api/dcgen/upload-folder-and-submit", handleDCGenUploadFolderAndSubmit);
   app.get("/api/dcgen/poll", handleDCGenPoll);
   app.post("/api/dcgen/report", handleDCGenReport);
+  app.post("/api/dcgen/stop-run", handleDCGenStopRun);
+  app.post("/api/dcgen/list-models", handleDCGenListModels);
   app.get("/api/dcgen/result-image/:runId/:instanceId", handleDCGenResultImage);
   app.get("/api/dcgen/result-html/:runId/:instanceId", handleDCGenResultHtml);
+  app.get("/api/dcgen/download-artifacts/:runId", handleDCGenDownloadArtifacts);
 
   return app;
 }
+

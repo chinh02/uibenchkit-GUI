@@ -1,4 +1,4 @@
-import Sidebar from "../components/Sidebar";
+﻿import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
@@ -12,7 +12,7 @@ export default function Citations() {
           <div className="max-w-4xl mx-auto">
             <h1 className="text-4xl font-bold text-text-primary mb-6">Citations</h1>
             <p className="text-text-secondary text-lg mb-8">
-              How to cite WebPAIBench in your research.
+              How to cite WebBench in your research.
             </p>
 
             <div className="space-y-6">
@@ -20,8 +20,8 @@ export default function Citations() {
                 <h2 className="text-2xl font-semibold text-text-primary mb-4">Main Paper</h2>
                 <pre className="bg-gray-50 p-4 rounded border border-gray-200 text-sm overflow-x-auto">
                   <code>
-{`@article{webpaibench2025,
-  title={WebPAIBench: A Comprehensive Benchmark Suite for Web-Based AI Evaluation},
+{`@article{webbench2025,
+  title={WebBench: A Comprehensive Benchmark Suite for Web-Based AI Evaluation},
   author={Author Names},
   journal={Journal Name},
   year={2025},
@@ -74,3 +74,4 @@ export default function Citations() {
     </>
   );
 }
+
