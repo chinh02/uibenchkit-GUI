@@ -5,8 +5,8 @@
  * This keeps the WebBench API URL and API key on the server side.
  *
  * Environment variables:
- *   DCGEN_API_URL  - Base URL of the WebBench Flask server (default: http://localhost:5000)
- *   DCGEN_API_KEY  - API key for authenticating with WebBench
+ *   WEBBENCH_API_URL  - Base URL of the WebBench Flask server (default: http://localhost:5000)
+ *   WEBBENCH_API_KEY  - API key for authenticating with WebBench (defaults to local dev key)
  */
 import { RequestHandler } from "express";
 import type {
@@ -19,9 +19,8 @@ import type {
   DCGenStopRunResponse,
 } from "@shared/api";
 
-const DCGEN_API_URL =
-  process.env.DCGEN_API_URL || "http://localhost:5000";
-const DCGEN_API_KEY = process.env.DCGEN_API_KEY || "dev-api-key-12345";
+const WEBBENCH_API_URL = process.env.WEBBENCH_API_URL || "http://localhost:5000";
+const WEBBENCH_API_KEY = process.env.WEBBENCH_API_KEY || "dev-api-key-12345";
 
 /** Helper: proxy a JSON request to WebBench */
 async function proxyToDCGen(
@@ -30,9 +29,9 @@ async function proxyToDCGen(
   body?: unknown,
   queryString?: string
 ): Promise<{ status: number; data: unknown }> {
-  const url = `${DCGEN_API_URL}${path}${queryString ? `?${queryString}` : ""}`;
+  const url = `${WEBBENCH_API_URL}${path}${queryString ? `?${queryString}` : ""}`;
   const headers: Record<string, string> = {
-    "x-api-key": DCGEN_API_KEY,
+    "x-api-key": WEBBENCH_API_KEY,
     "Content-Type": "application/json",
   };
 
@@ -86,6 +85,14 @@ export const handleDCGenHealth: RequestHandler = async (_req, res) => {
 // â”€â”€â”€ Submit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const handleDCGenSubmit: RequestHandler = async (req, res) => {
   try {
+    const body = req.body as { user_api_key?: string };
+    if (!body.user_api_key) {
+      res.status(400).json({
+        message: "A provider API key is required to submit a WebBench run.",
+      });
+      return;
+    }
+
     const { status, data } = await proxyToDCGen("/submit", "POST", req.body);
     res.status(status).json(data as DCGenSubmitResponse);
   } catch (err) {
@@ -127,6 +134,12 @@ export const handleDCGenUploadAndSubmit: RequestHandler = async (req, res) => {
       });
       return;
     }
+    if (!user_api_key) {
+      res.status(400).json({
+        message: "A provider API key is required to submit a WebBench run.",
+      });
+      return;
+    }
 
     // Create a temporary directory, write the image, then call /submit
     const fs = await import("fs");
@@ -158,7 +171,7 @@ export const handleDCGenUploadAndSubmit: RequestHandler = async (req, res) => {
       model,
       method,
       input_dir: tmpDir,
-      api_key: DCGEN_API_KEY,
+      api_key: WEBBENCH_API_KEY,
     };
     if (user_api_key) submitBody.user_api_key = user_api_key;
     if (user_base_url) submitBody.user_base_url = user_base_url;
@@ -273,6 +286,12 @@ export const handleDCGenUploadFolderAndSubmit: RequestHandler = async (
       res.status(400).json({ message: "Missing required fields: model, method" });
       return;
     }
+    if (!user_api_key) {
+      res.status(400).json({
+        message: "A provider API key is required to submit a WebBench run.",
+      });
+      return;
+    }
 
     const fs = await import("fs");
     const path = await import("path");
@@ -315,7 +334,7 @@ export const handleDCGenUploadFolderAndSubmit: RequestHandler = async (
       model,
       method,
       input_dir: tmpDir,
-      api_key: DCGEN_API_KEY,
+      api_key: WEBBENCH_API_KEY,
     };
     if (user_api_key) submitBody.user_api_key = user_api_key;
     if (user_base_url) submitBody.user_base_url = user_base_url;
@@ -531,10 +550,10 @@ export const handleDCGenDownloadArtifacts: RequestHandler = async (req, res) => 
     }
 
     const qs = `run_id=${encodeURIComponent(runId)}`;
-    const upstreamResp = await fetch(`${DCGEN_API_URL}/download-artifacts?${qs}`, {
+    const upstreamResp = await fetch(`${WEBBENCH_API_URL}/download-artifacts?${qs}`, {
       method: "GET",
       headers: {
-        "x-api-key": DCGEN_API_KEY,
+        "x-api-key": WEBBENCH_API_KEY,
       },
     });
 

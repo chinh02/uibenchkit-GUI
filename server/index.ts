@@ -25,6 +25,17 @@ export function createServer() {
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
+  const webbenchProxySecret = process.env.WEBBENCH_PROXY_SECRET;
+  if (webbenchProxySecret) {
+    app.use("/api/dcgen", (req, res, next) => {
+      if (req.header("x-webbench-proxy-secret") !== webbenchProxySecret) {
+        res.status(403).json({ message: "Forbidden" });
+        return;
+      }
+      next();
+    });
+  }
+
   // Example API routes
   app.get("/api/ping", (_req, res) => {
     const ping = process.env.PING_MESSAGE ?? "ping";

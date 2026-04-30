@@ -23,7 +23,7 @@ The `wrangler.toml` file also declares `pages_build_output_dir = "./dist/spa"`.
 
 ## Routing
 
-`public/_redirects` rewrites all routes to `index.html`, so React Router pages work when visitors refresh a nested URL.
+Cloudflare Pages' default SPA behavior serves `index.html` for client-side routes. `public/_routes.json` restricts Functions to API routes.
 
 ## GitHub leaderboard proxy
 
@@ -34,6 +34,26 @@ Set these Cloudflare Pages variables:
 - `GITHUB_TOKEN`: GitHub token with read access to the leaderboard repository. Store this as a secret.
 - `GITHUB_REPO`: `chinh02/web-bench-experiments`
 - `GITHUB_BRANCH`: `main`
+
+## Live Demo WebBench proxy
+
+The Live Demo calls `/api/dcgen/*`. In production, Cloudflare Pages forwards those requests to the Node/Express proxy running beside the WebBench Flask API on the Google VM.
+
+Set this Cloudflare Pages variable:
+
+- `WEBBENCH_PROXY_URL`: public URL for the VM Node proxy, for example `https://webbench-api.example.com`
+- `WEBBENCH_PROXY_SECRET`: shared secret sent by Cloudflare Pages to the VM proxy. Store this as a secret.
+
+On the VM, run the frontend server/proxy with:
+
+```bash
+cd /path/to/test-builder-vibe-coding
+pnpm install --frozen-lockfile
+pnpm build
+WEBBENCH_API_URL=http://127.0.0.1:5000 WEBBENCH_PROXY_SECRET=your_shared_secret PORT=3000 node dist/server/node-build.mjs
+```
+
+Expose `http://127.0.0.1:3000` publicly with Cloudflare Tunnel or another HTTPS reverse proxy. The Cloudflare Pages Function keeps the browser calling same-origin `/api/dcgen/*`.
 
 ## Live Demo note
 

@@ -946,7 +946,7 @@ export default function LiveDemo() {
                     ) : (
                       <Badge variant="destructive" className="gap-1.5">
                         <XCircle className="w-3 h-3" />
-                        WebBench API Offline - Start the server at port 5000
+                        WebBench API Offline
                       </Badge>
                     )}
                   </div>
