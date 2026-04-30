@@ -25,6 +25,16 @@ The `wrangler.toml` file also declares `pages_build_output_dir = "./dist/spa"`.
 
 `public/_redirects` rewrites all routes to `index.html`, so React Router pages work when visitors refresh a nested URL.
 
+## GitHub leaderboard proxy
+
+The leaderboard uses a Cloudflare Pages Function at `/.netlify/functions/github-proxy` to read private GitHub files without exposing the token in browser code.
+
+Set these Cloudflare Pages variables:
+
+- `GITHUB_TOKEN`: GitHub token with read access to the leaderboard repository. Store this as a secret.
+- `GITHUB_REPO`: `chinh02/web-bench-experiments`
+- `GITHUB_BRANCH`: `main`
+
 ## Live Demo note
 
 Cloudflare Pages will only serve the static frontend. The current Live Demo calls `/api/dcgen/...`, which requires the Express proxy or another backend. If the Google VM is turned off, hide or remove the Live Demo before deploying the public static site.
