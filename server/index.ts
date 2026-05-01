@@ -15,7 +15,7 @@ import {
   handleDCGenUploadFolderAndSubmit,
   handleDCGenListModels,
   handleDCGenStopRun,
-} from "./routes/dcgen-proxy";
+} from "./routes/webbench-proxy";
 
 export function createServer() {
   const app = express();
