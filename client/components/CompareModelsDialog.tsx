@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 
 interface ModelData {
   model: string;
+  method?: string;
+  run_id?: string;
   [key: string]: any;
 }
 
@@ -129,6 +131,37 @@ export function CompareModelsDialog({
   // Only use selected metrics for charts
   const metricKeys = allMetricKeys.filter(k => selectedMetrics.has(k));
 
+  const getModelKey = (model: ModelData): string => {
+    return model.run_id || `${model.method || "-"}__${model.model}`;
+  };
+
+  const getMethodLabel = (model: ModelData): string => {
+    const method = String(model.method || "").trim();
+    if (!method || method === "-") return "";
+    return method.charAt(0).toUpperCase() + method.slice(1);
+  };
+
+  const getModelLabel = (model: ModelData): string => {
+    const method = getMethodLabel(model);
+    if (!method) return model.model;
+    return `${method} - ${model.model}`;
+  };
+
+  const ModelLabel = ({ model }: { model: ModelData }) => {
+    const method = getMethodLabel(model);
+    if (!method) return <>{model.model}</>;
+    return (
+      <>
+        <span>
+          <span className="font-bold">{method.charAt(0)}</span>
+          {method.slice(1)}
+        </span>
+        {" - "}
+        {model.model}
+      </>
+    );
+  };
+
   const formatMetricName = (key: string): string => {
     return key
       .replace(/_/g, ' ')
@@ -233,7 +266,7 @@ export function CompareModelsDialog({
             }).join(' ');
             
             return (
-              <g key={model.model}>
+              <g key={getModelKey(model)}>
                 <polygon
                   points={points}
                   fill={colors[modelIdx % colors.length].fill}
@@ -254,7 +287,7 @@ export function CompareModelsDialog({
                       r="4"
                       fill={colors[modelIdx % colors.length].hex}
                     >
-                      <title>{`${model.model} - ${formatMetricName(key)}: ${rawValue}`}</title>
+                      <title>{`${getModelLabel(model)} - ${formatMetricName(key)}: ${rawValue}`}</title>
                     </circle>
                   );
                 })}
@@ -283,9 +316,11 @@ export function CompareModelsDialog({
         {/* Legend */}
         <div className="flex flex-wrap justify-center gap-3 mt-4">
           {selectedModels.map((model, idx) => (
-            <div key={model.model} className="flex items-center gap-2">
+            <div key={getModelKey(model)} className="flex items-center gap-2">
               <div className={`w-3 h-3 rounded-full ${colors[idx % colors.length].bg}`} />
-              <span className="text-xs font-medium text-gray-700">{model.model}</span>
+              <span className="text-xs font-medium text-gray-700">
+                <ModelLabel model={model} />
+              </span>
             </div>
           ))}
         </div>
@@ -331,7 +366,7 @@ export function CompareModelsDialog({
                     
                     return (
                       <div
-                        key={model.model}
+                        key={getModelKey(model)}
                         className="relative group"
                         style={{ width: `${Math.max(16, 50 / selectedModels.length)}px` }}
                       >
@@ -341,7 +376,7 @@ export function CompareModelsDialog({
                         />
                         {/* Tooltip */}
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-20 pointer-events-none">
-                          {model.model}: {value.toFixed(1)}
+                          {getModelLabel(model)}: {value.toFixed(1)}
                         </div>
                       </div>
                     );
@@ -358,9 +393,11 @@ export function CompareModelsDialog({
         {/* Legend */}
         <div className="flex flex-wrap justify-center gap-4 pt-2">
           {selectedModels.map((model, idx) => (
-            <div key={model.model} className="flex items-center gap-2">
+            <div key={getModelKey(model)} className="flex items-center gap-2">
               <div className={`w-4 h-4 rounded ${colors[idx % colors.length].bg}`} />
-              <span className="text-sm font-medium text-gray-700">{model.model}</span>
+              <span className="text-sm font-medium text-gray-700">
+                <ModelLabel model={model} />
+              </span>
             </div>
           ))}
         </div>
@@ -434,7 +471,7 @@ export function CompareModelsDialog({
         <table className="w-full text-sm">
           <thead>
             <tr>
-              <th className="px-3 py-2 text-left font-semibold text-gray-600 bg-gray-100">Model</th>
+              <th className="px-3 py-2 text-left font-semibold text-gray-600 bg-gray-100">Method / Model</th>
               {metricKeys.map((key) => (
                 <th key={key} className="px-3 py-2 text-center font-semibold text-gray-600 bg-gray-100 whitespace-nowrap">
                   {formatMetricName(key).slice(0, 10)}
@@ -444,11 +481,11 @@ export function CompareModelsDialog({
           </thead>
           <tbody>
             {selectedModels.map((model, idx) => (
-              <tr key={model.model}>
+              <tr key={getModelKey(model)}>
                 <td className="px-3 py-2 font-medium text-gray-900 border-b">
                   <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${colors[idx % colors.length].bg}`} />
-                    {model.model}
+                    <ModelLabel model={model} />
                   </div>
                 </td>
                 {metricKeys.map((key) => {
@@ -487,11 +524,11 @@ export function CompareModelsDialog({
   // Ranking Chart Component - shows rank position per metric
   const RankingChart = () => {
     // Calculate rankings for each metric
-    const rankings: Record<string, { model: string; rank: number; value: number }[]> = {};
+    const rankings: Record<string, { modelKey: string; rank: number; value: number }[]> = {};
     
     metricKeys.forEach((key) => {
       const sorted = [...selectedModels]
-        .map((m) => ({ model: m.model, value: getNumericValue(m[key]) }))
+        .map((m) => ({ modelKey: getModelKey(m), value: getNumericValue(m[key]) }))
         .sort((a, b) => b.value - a.value);
       
       rankings[key] = sorted.map((item, index) => ({
@@ -503,16 +540,19 @@ export function CompareModelsDialog({
     return (
       <div className="space-y-6">
         {selectedModels.map((model, modelIdx) => {
+          const modelKey = getModelKey(model);
           const modelRanks = metricKeys.map((key) => {
-            const ranking = rankings[key].find((r) => r.model === model.model);
+            const ranking = rankings[key].find((r) => r.modelKey === modelKey);
             return { key, rank: ranking?.rank || 0, value: ranking?.value || 0 };
           });
           
           return (
-            <div key={model.model} className="space-y-2">
+            <div key={modelKey} className="space-y-2">
               <div className="flex items-center gap-2">
                 <div className={`w-3 h-3 rounded-full ${colors[modelIdx % colors.length].bg}`} />
-                <span className="font-semibold text-gray-800">{model.model}</span>
+                <span className="font-semibold text-gray-800">
+                  <ModelLabel model={model} />
+                </span>
               </div>
               <div className="flex items-center gap-1">
                 {modelRanks.map(({ key, rank }) => {
@@ -541,15 +581,18 @@ export function CompareModelsDialog({
           <h4 className="text-sm font-semibold text-gray-700 mb-2">🏆 First Place Counts</h4>
           <div className="flex flex-wrap gap-3">
             {selectedModels.map((model, idx) => {
+              const modelKey = getModelKey(model);
               const firstPlaceCount = metricKeys.filter((key) => {
-                const ranking = rankings[key].find((r) => r.model === model.model);
+                const ranking = rankings[key].find((r) => r.modelKey === modelKey);
                 return ranking?.rank === 1;
               }).length;
               
               return (
-                <div key={model.model} className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
+                <div key={modelKey} className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
                   <div className={`w-3 h-3 rounded-full ${colors[idx % colors.length].bg}`} />
-                  <span className="text-sm text-gray-700">{model.model}</span>
+                  <span className="text-sm text-gray-700">
+                    <ModelLabel model={model} />
+                  </span>
                   <span className="font-bold text-amber-600">{firstPlaceCount}</span>
                 </div>
               );
@@ -716,7 +759,7 @@ export function CompareModelsDialog({
                 <thead>
                   <tr className="border-b-2 border-gray-300">
                     <th className="px-4 py-3 text-left font-bold bg-gray-50 sticky left-0">
-                      Model
+                      Method / Model
                     </th>
                     {metricKeys.map((key) => (
                       <th
@@ -731,7 +774,7 @@ export function CompareModelsDialog({
                 <tbody>
                   {selectedModels.map((model, idx) => (
                     <tr
-                      key={model.model}
+                      key={getModelKey(model)}
                       className={`border-b ${
                         idx % 2 === 0 ? 'bg-amber-50/30' : 'bg-white'
                       }`}
@@ -739,7 +782,7 @@ export function CompareModelsDialog({
                       <td className="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-inherit">
                         <div className="flex items-center gap-2">
                           <div className={`w-3 h-3 rounded-full ${colors[idx % colors.length].bg}`} />
-                          {model.model}
+                          <ModelLabel model={model} />
                         </div>
                       </td>
                       {metricKeys.map((key) => {
