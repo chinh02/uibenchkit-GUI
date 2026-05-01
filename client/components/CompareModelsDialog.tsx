@@ -147,21 +147,6 @@ export function CompareModelsDialog({
     return `${method} - ${model.model}`;
   };
 
-  const ModelLabel = ({ model }: { model: ModelData }) => {
-    const method = getMethodLabel(model);
-    if (!method) return <>{model.model}</>;
-    return (
-      <>
-        <span>
-          <span className="font-bold">{method.charAt(0)}</span>
-          {method.slice(1)}
-        </span>
-        {" - "}
-        {model.model}
-      </>
-    );
-  };
-
   const formatMetricName = (key: string): string => {
     return key
       .replace(/_/g, ' ')
@@ -318,9 +303,7 @@ export function CompareModelsDialog({
           {selectedModels.map((model, idx) => (
             <div key={getModelKey(model)} className="flex items-center gap-2">
               <div className={`w-3 h-3 rounded-full ${colors[idx % colors.length].bg}`} />
-              <span className="text-xs font-medium text-gray-700">
-                <ModelLabel model={model} />
-              </span>
+              <span className="text-xs font-medium text-gray-700">{getModelLabel(model)}</span>
             </div>
           ))}
         </div>
@@ -395,9 +378,7 @@ export function CompareModelsDialog({
           {selectedModels.map((model, idx) => (
             <div key={getModelKey(model)} className="flex items-center gap-2">
               <div className={`w-4 h-4 rounded ${colors[idx % colors.length].bg}`} />
-              <span className="text-sm font-medium text-gray-700">
-                <ModelLabel model={model} />
-              </span>
+              <span className="text-sm font-medium text-gray-700">{getModelLabel(model)}</span>
             </div>
           ))}
         </div>
@@ -485,7 +466,7 @@ export function CompareModelsDialog({
                 <td className="px-3 py-2 font-medium text-gray-900 border-b">
                   <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${colors[idx % colors.length].bg}`} />
-                    <ModelLabel model={model} />
+                    {getModelLabel(model)}
                   </div>
                 </td>
                 {metricKeys.map((key) => {
@@ -550,9 +531,7 @@ export function CompareModelsDialog({
             <div key={modelKey} className="space-y-2">
               <div className="flex items-center gap-2">
                 <div className={`w-3 h-3 rounded-full ${colors[modelIdx % colors.length].bg}`} />
-                <span className="font-semibold text-gray-800">
-                  <ModelLabel model={model} />
-                </span>
+                <span className="font-semibold text-gray-800">{getModelLabel(model)}</span>
               </div>
               <div className="flex items-center gap-1">
                 {modelRanks.map(({ key, rank }) => {
@@ -590,9 +569,7 @@ export function CompareModelsDialog({
               return (
                 <div key={modelKey} className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg">
                   <div className={`w-3 h-3 rounded-full ${colors[idx % colors.length].bg}`} />
-                  <span className="text-sm text-gray-700">
-                    <ModelLabel model={model} />
-                  </span>
+                  <span className="text-sm text-gray-700">{getModelLabel(model)}</span>
                   <span className="font-bold text-amber-600">{firstPlaceCount}</span>
                 </div>
               );
@@ -782,7 +759,7 @@ export function CompareModelsDialog({
                       <td className="px-4 py-3 font-medium text-gray-900 sticky left-0 bg-inherit">
                         <div className="flex items-center gap-2">
                           <div className={`w-3 h-3 rounded-full ${colors[idx % colors.length].bg}`} />
-                          <ModelLabel model={model} />
+                          {getModelLabel(model)}
                         </div>
                       </td>
                       {metricKeys.map((key) => {
