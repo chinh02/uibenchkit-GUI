@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { FileText, Github, Database } from "lucide-react";
 
@@ -57,6 +58,11 @@ export default function Header() {
   };
 
   const config = getPageConfig();
+
+  useEffect(() => {
+    document.title =
+      config.title === "WebBench" ? "WebBench" : `${config.title} | WebBench`;
+  }, [config.title]);
 
   return (
     <div className="fixed top-0 left-0 lg:left-64 right-0 z-50" style={{ backgroundColor: '#de7a59' }}>
