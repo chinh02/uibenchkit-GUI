@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import Footer from "@/components/Footer";
@@ -51,11 +51,11 @@ import {
   Globe,
 } from "lucide-react";
 import type {
-  DCGenSubmitResponse,
-  DCGenPollResponse,
-  DCGenReportResponse,
-  DCGenHealthResponse,
-  DCGenStopRunResponse,
+  WebBenchSubmitResponse,
+  WebBenchPollResponse,
+  WebBenchReportResponse,
+  WebBenchHealthResponse,
+  WebBenchStopRunResponse,
 } from "@shared/api";
 
 type DemoStage =
@@ -91,7 +91,7 @@ interface InstanceResult {
 interface DemoResult {
   runId: string;
   instances: InstanceResult[];
-  report: DCGenReportResponse["report"] | null;
+  report: WebBenchReportResponse["report"] | null;
   /** Maps instanceId -> data URL of the original uploaded image */
   inputImages: Record<string, string>;
 }
@@ -175,7 +175,7 @@ export default function LiveDemo() {
   const [result, setResult] = useState<DemoResult | null>(null);
   const [activeInstanceIdx, setActiveInstanceIdx] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [pollStatus, setPollStatus] = useState<DCGenPollResponse | null>(null);
+  const [pollStatus, setPollStatus] = useState<WebBenchPollResponse | null>(null);
   const [copied, setCopied] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [downloadingArtifacts, setDownloadingArtifacts] = useState(false);
@@ -195,7 +195,7 @@ export default function LiveDemo() {
   // â”€â”€ Restore persisted results on mount â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     try {
-      const saved = sessionStorage.getItem("dcgen-demo-result");
+      const saved = sessionStorage.getItem("webbench-demo-result");
       if (saved) {
         const parsed = JSON.parse(saved) as DemoResult;
         setResult(parsed);
@@ -210,7 +210,7 @@ export default function LiveDemo() {
   useEffect(() => {
     if (result && stage === "completed") {
       try {
-        sessionStorage.setItem("dcgen-demo-result", JSON.stringify(result));
+        sessionStorage.setItem("webbench-demo-result", JSON.stringify(result));
       } catch {
         // sessionStorage may be full for very large results - ignore
       }
@@ -219,9 +219,9 @@ export default function LiveDemo() {
 
   // â”€â”€ Health check on mount â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
-    fetch("/api/dcgen/health")
+    fetch("/api/webbench/health")
       .then((r) => r.json())
-      .then((data: DCGenHealthResponse) => {
+      .then((data: WebBenchHealthResponse) => {
         setApiHealthy(data.status === "healthy");
         if (data.supported_methods) {
           setSupportedMethods(data.supported_methods);
@@ -249,7 +249,7 @@ export default function LiveDemo() {
     if (!userApiKey.trim()) return;
     setFetchingModels(true);
     try {
-      const resp = await fetch("/api/dcgen/list-models", {
+      const resp = await fetch("/api/webbench/list-models", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -439,11 +439,11 @@ export default function LiveDemo() {
     pollIntervalRef.current = setInterval(async () => {
       try {
         const resp = await fetch(
-          `/api/dcgen/poll?run_id=${encodeURIComponent(runId)}`
+          `/api/webbench/poll?run_id=${encodeURIComponent(runId)}`
         );
         if (!resp.ok) return;
 
-        const data: DCGenPollResponse = await resp.json();
+        const data: WebBenchPollResponse = await resp.json();
         setPollStatus(data);
 
         if (
@@ -459,7 +459,7 @@ export default function LiveDemo() {
             await fetchResults(runId, data);
           } else if (data.status === "stopped") {
             setResult(null);
-            sessionStorage.removeItem("dcgen-demo-result");
+            sessionStorage.removeItem("webbench-demo-result");
             setStopMessage(
               `Run ${runId} was stopped. The in-flight image may have finished before cancellation took effect.`
             );
@@ -468,7 +468,7 @@ export default function LiveDemo() {
           } else {
             // Run-level failure - clear any stale result from a previous run
             setResult(null);
-            sessionStorage.removeItem("dcgen-demo-result");
+            sessionStorage.removeItem("webbench-demo-result");
             setStage("error");
             setCurrentRunId(null);
             setError(
@@ -483,15 +483,15 @@ export default function LiveDemo() {
   }, []);
 
   // â”€â”€ Fetch results after completion â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  const fetchResults = async (runId: string, poll: DCGenPollResponse) => {
+  const fetchResults = async (runId: string, poll: WebBenchPollResponse) => {
     try {
       // Get the report
-      const reportResp = await fetch("/api/dcgen/report", {
+      const reportResp = await fetch("/api/webbench/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ run_id: runId }),
       });
-      const reportData: DCGenReportResponse = await reportResp.json();
+      const reportData: WebBenchReportResponse = await reportResp.json();
 
       // Fetch results for ALL completed instances
       const instanceResults: InstanceResult[] = [];
@@ -499,14 +499,14 @@ export default function LiveDemo() {
       for (const instanceId of poll.completed) {
         try {
           const htmlResp = await fetch(
-            `/api/dcgen/result-html/${encodeURIComponent(runId)}/${encodeURIComponent(instanceId)}`
+            `/api/webbench/result-html/${encodeURIComponent(runId)}/${encodeURIComponent(instanceId)}`
           );
           const htmlData = await htmlResp.json();
 
           let screenshotBase64: string | null = null;
           try {
             const imgResp = await fetch(
-              `/api/dcgen/result-image/${encodeURIComponent(runId)}/${encodeURIComponent(instanceId)}`
+              `/api/webbench/result-image/${encodeURIComponent(runId)}/${encodeURIComponent(instanceId)}`
             );
             if (imgResp.ok) {
               const imgData = await imgResp.json();
@@ -599,7 +599,7 @@ export default function LiveDemo() {
     setCurrentRunId(null);
     setStopMessage(null);
     setStoppingRun(false);
-    sessionStorage.removeItem("dcgen-demo-result");
+    sessionStorage.removeItem("webbench-demo-result");
 
     // Snapshot input image for comparison (before closure goes stale)
     inputImagesRef.current = imagePreview ? { input: imagePreview } : {};
@@ -610,7 +610,7 @@ export default function LiveDemo() {
       setStage("processing");
 
       const creds = getSubmitCredentials();
-      const resp = await fetch("/api/dcgen/upload-and-submit", {
+      const resp = await fetch("/api/webbench/upload-and-submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -630,7 +630,7 @@ export default function LiveDemo() {
         throw new Error(err.message || "Submission failed");
       }
 
-      const data: DCGenSubmitResponse = await resp.json();
+      const data: WebBenchSubmitResponse = await resp.json();
 
       if (!data.launched && !data.run_id) {
         throw new Error(data.message || "Failed to launch run");
@@ -660,7 +660,7 @@ export default function LiveDemo() {
     setCurrentRunId(null);
     setStopMessage(null);
     setStoppingRun(false);
-    sessionStorage.removeItem("dcgen-demo-result");
+    sessionStorage.removeItem("webbench-demo-result");
 
     // Snapshot input images for comparison (before closure goes stale)
     const map: Record<string, string> = {};
@@ -688,7 +688,7 @@ export default function LiveDemo() {
         ...(creds.baseUrl ? { user_base_url: creds.baseUrl } : {}),
       };
 
-      const resp = await fetch("/api/dcgen/upload-folder-and-submit", {
+      const resp = await fetch("/api/webbench/upload-folder-and-submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -699,7 +699,7 @@ export default function LiveDemo() {
         throw new Error(err.message || "Submission failed");
       }
 
-      const data: DCGenSubmitResponse = await resp.json();
+      const data: WebBenchSubmitResponse = await resp.json();
 
       if (!data.launched && !data.run_id) {
         throw new Error(data.message || "Failed to launch run");
@@ -777,7 +777,7 @@ export default function LiveDemo() {
 
     try {
       const resp = await fetch(
-        `/api/dcgen/download-artifacts/${encodeURIComponent(result.runId)}`
+        `/api/webbench/download-artifacts/${encodeURIComponent(result.runId)}`
       );
 
       if (!resp.ok) {
@@ -811,12 +811,12 @@ export default function LiveDemo() {
     setStopMessage(null);
 
     try {
-      const resp = await fetch("/api/dcgen/stop-run", {
+      const resp = await fetch("/api/webbench/stop-run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ run_id: runId }),
       });
-      const data = (await resp.json().catch(() => ({}))) as Partial<DCGenStopRunResponse>;
+      const data = (await resp.json().catch(() => ({}))) as Partial<WebBenchStopRunResponse>;
 
       if (!resp.ok) {
         throw new Error(data.message || "Failed to stop run");
@@ -830,7 +830,7 @@ export default function LiveDemo() {
       setCurrentRunId(null);
       setPollStatus(null);
       setResult(null);
-      sessionStorage.removeItem("dcgen-demo-result");
+      sessionStorage.removeItem("webbench-demo-result");
       setStopMessage(
         data.message ||
           `Run ${runId} was stopped. The current in-flight image may finish before cancellation fully takes effect.`
@@ -864,7 +864,7 @@ export default function LiveDemo() {
     if (fileInputRef.current) fileInputRef.current.value = "";
     if (folderInputRef.current) folderInputRef.current.value = "";
     if (refHtmlInputRef.current) refHtmlInputRef.current.value = "";
-    sessionStorage.removeItem("dcgen-demo-result");
+    sessionStorage.removeItem("webbench-demo-result");
   };
 
   // â”€â”€ Derived state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

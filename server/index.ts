@@ -1,20 +1,20 @@
-﻿import "dotenv/config";
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
 import { handleGitHubProxy } from "./routes/github-proxy";
 import {
-  handleDCGenHealth,
-  handleDCGenSubmit,
-  handleDCGenUploadAndSubmit,
-  handleDCGenPoll,
-  handleDCGenReport,
-  handleDCGenResultImage,
-  handleDCGenResultHtml,
-  handleDCGenDownloadArtifacts,
-  handleDCGenUploadFolderAndSubmit,
-  handleDCGenListModels,
-  handleDCGenStopRun,
+  handleWebBenchHealth,
+  handleWebBenchSubmit,
+  handleWebBenchUploadAndSubmit,
+  handleWebBenchPoll,
+  handleWebBenchReport,
+  handleWebBenchResultImage,
+  handleWebBenchResultHtml,
+  handleWebBenchDownloadArtifacts,
+  handleWebBenchUploadFolderAndSubmit,
+  handleWebBenchListModels,
+  handleWebBenchStopRun,
 } from "./routes/webbench-proxy";
 
 export function createServer() {
@@ -27,7 +27,7 @@ export function createServer() {
 
   const webbenchProxySecret = process.env.WEBBENCH_PROXY_SECRET;
   if (webbenchProxySecret) {
-    app.use("/api/dcgen", (req, res, next) => {
+    app.use("/api/webbench", (req, res, next) => {
       if (req.header("x-webbench-proxy-secret") !== webbenchProxySecret) {
         res.status(403).json({ message: "Forbidden" });
         return;
@@ -48,17 +48,17 @@ export function createServer() {
   app.get("/.netlify/functions/github-proxy", handleGitHubProxy);
 
   // WebBench demo API proxy
-  app.get("/api/dcgen/health", handleDCGenHealth);
-  app.post("/api/dcgen/submit", handleDCGenSubmit);
-  app.post("/api/dcgen/upload-and-submit", handleDCGenUploadAndSubmit);
-  app.post("/api/dcgen/upload-folder-and-submit", handleDCGenUploadFolderAndSubmit);
-  app.get("/api/dcgen/poll", handleDCGenPoll);
-  app.post("/api/dcgen/report", handleDCGenReport);
-  app.post("/api/dcgen/stop-run", handleDCGenStopRun);
-  app.post("/api/dcgen/list-models", handleDCGenListModels);
-  app.get("/api/dcgen/result-image/:runId/:instanceId", handleDCGenResultImage);
-  app.get("/api/dcgen/result-html/:runId/:instanceId", handleDCGenResultHtml);
-  app.get("/api/dcgen/download-artifacts/:runId", handleDCGenDownloadArtifacts);
+  app.get("/api/webbench/health", handleWebBenchHealth);
+  app.post("/api/webbench/submit", handleWebBenchSubmit);
+  app.post("/api/webbench/upload-and-submit", handleWebBenchUploadAndSubmit);
+  app.post("/api/webbench/upload-folder-and-submit", handleWebBenchUploadFolderAndSubmit);
+  app.get("/api/webbench/poll", handleWebBenchPoll);
+  app.post("/api/webbench/report", handleWebBenchReport);
+  app.post("/api/webbench/stop-run", handleWebBenchStopRun);
+  app.post("/api/webbench/list-models", handleWebBenchListModels);
+  app.get("/api/webbench/result-image/:runId/:instanceId", handleWebBenchResultImage);
+  app.get("/api/webbench/result-html/:runId/:instanceId", handleWebBenchResultHtml);
+  app.get("/api/webbench/download-artifacts/:runId", handleWebBenchDownloadArtifacts);
 
   return app;
 }

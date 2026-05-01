@@ -1,5 +1,5 @@
 {
   "version": 1,
-  "include": ["/.netlify/functions/*", "/api/dcgen/*"],
+  "include": ["/.netlify/functions/*", "/api/webbench/*"],
   "exclude": []
 }

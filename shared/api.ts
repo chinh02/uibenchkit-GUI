@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Shared code between client and server
  * Useful to share types between client and server
  * and/or small pure JS functions that can be used on both client and server
@@ -15,8 +15,8 @@ export interface DemoResponse {
 // WebBench demo API types
 // ============================================================
 
-/** Response from POST /api/dcgen/submit */
-export interface DCGenSubmitResponse {
+/** Response from POST /api/webbench/submit */
+export interface WebBenchSubmitResponse {
   message: string;
   launched: boolean;
   run_id: string;
@@ -26,8 +26,8 @@ export interface DCGenSubmitResponse {
   dataset?: string;
 }
 
-/** Response from POST /api/dcgen/stop-run */
-export interface DCGenStopRunResponse {
+/** Response from POST /api/webbench/stop-run */
+export interface WebBenchStopRunResponse {
   message: string;
   run_id: string;
   completed_instances?: number;
@@ -36,8 +36,8 @@ export interface DCGenStopRunResponse {
   evaluation_started?: boolean;
 }
 
-/** Response from GET /api/dcgen/poll */
-export interface DCGenPollResponse {
+/** Response from GET /api/webbench/poll */
+export interface WebBenchPollResponse {
   run_id: string;
   status: "pending" | "running" | "completed" | "failed" | "stopped";
   dataset?: string;
@@ -53,8 +53,8 @@ export interface DCGenPollResponse {
   cost_estimate?: Record<string, unknown>;
 }
 
-/** Response from POST /api/dcgen/report */
-export interface DCGenReportResponse {
+/** Response from POST /api/webbench/report */
+export interface WebBenchReportResponse {
   report: {
     run_id: string;
     model: string;
@@ -86,8 +86,8 @@ export interface DCGenReportResponse {
   };
 }
 
-/** Response from GET /api/dcgen/health */
-export interface DCGenHealthResponse {
+/** Response from GET /api/webbench/health */
+export interface WebBenchHealthResponse {
   status: string;
   version: string;
   supported_methods: string[];
@@ -97,19 +97,19 @@ export interface DCGenHealthResponse {
 }
 
 /** Response for fetching a generated HTML file */
-export interface DCGenResultFile {
+export interface WebBenchResultFile {
   html: string;
   screenshotUrl?: string;
 }
 
-/** Response from GET /api/dcgen/result-image/:runId/:instanceId */
-export interface DCGenResultImageResponse {
+/** Response from GET /api/webbench/result-image/:runId/:instanceId */
+export interface WebBenchResultImageResponse {
   /** base64-encoded PNG screenshot */
   image: string;
 }
 
-/** Response from GET /api/dcgen/result-html/:runId/:instanceId */
-export interface DCGenResultHtmlResponse {
+/** Response from GET /api/webbench/result-html/:runId/:instanceId */
+export interface WebBenchResultHtmlResponse {
   html: string;
 }
 

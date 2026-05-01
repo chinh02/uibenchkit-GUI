@@ -37,7 +37,7 @@ Set these Cloudflare Pages variables:
 
 ## Live Demo WebBench proxy
 
-The Live Demo calls `/api/dcgen/*`. In production, Cloudflare Pages forwards those requests to the Node/Express proxy running beside the WebBench Flask API on the Google VM.
+The Live Demo calls `/api/webbench/*`. In production, Cloudflare Pages forwards those requests to the Node/Express proxy running beside the WebBench Flask API on the Google VM.
 
 Set this Cloudflare Pages variable:
 
@@ -53,8 +53,8 @@ pnpm build
 WEBBENCH_API_URL=http://127.0.0.1:5000 WEBBENCH_PROXY_SECRET=your_shared_secret PORT=3000 node dist/server/node-build.mjs
 ```
 
-Expose `http://127.0.0.1:3000` publicly with Cloudflare Tunnel or another HTTPS reverse proxy. The Cloudflare Pages Function keeps the browser calling same-origin `/api/dcgen/*`.
+Expose `http://127.0.0.1:3000` publicly with Cloudflare Tunnel or another HTTPS reverse proxy. The Cloudflare Pages Function keeps the browser calling same-origin `/api/webbench/*`.
 
 ## Live Demo note
 
-Cloudflare Pages will only serve the static frontend. The current Live Demo calls `/api/dcgen/...`, which requires the Express proxy or another backend. If the Google VM is turned off, hide or remove the Live Demo before deploying the public static site.
+Cloudflare Pages will only serve the static frontend. The current Live Demo calls `/api/webbench/...`, which requires the Express proxy or another backend. If the Google VM is turned off, hide or remove the Live Demo before deploying the public static site.

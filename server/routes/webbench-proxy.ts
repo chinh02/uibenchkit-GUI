@@ -1,4 +1,4 @@
-﻿/**
+/**
  * WebBench API Proxy
  *
  * Proxies requests from the frontend to the WebBench Flask API server.
@@ -10,20 +10,20 @@
  */
 import { RequestHandler } from "express";
 import type {
-  DCGenSubmitResponse,
-  DCGenPollResponse,
-  DCGenReportResponse,
-  DCGenHealthResponse,
-  DCGenResultImageResponse,
-  DCGenResultHtmlResponse,
-  DCGenStopRunResponse,
+  WebBenchSubmitResponse,
+  WebBenchPollResponse,
+  WebBenchReportResponse,
+  WebBenchHealthResponse,
+  WebBenchResultImageResponse,
+  WebBenchResultHtmlResponse,
+  WebBenchStopRunResponse,
 } from "@shared/api";
 
 const WEBBENCH_API_URL = process.env.WEBBENCH_API_URL || "http://localhost:5000";
 const WEBBENCH_API_KEY = process.env.WEBBENCH_API_KEY || "dev-api-key-12345";
 
 /** Helper: proxy a JSON request to WebBench */
-async function proxyToDCGen(
+async function proxyToWebBench(
   path: string,
   method: "GET" | "POST" | "DELETE",
   body?: unknown,
@@ -70,9 +70,9 @@ function getFilenameFromContentDisposition(
 }
 
 // â”€â”€â”€ Health â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-export const handleDCGenHealth: RequestHandler = async (_req, res) => {
+export const handleWebBenchHealth: RequestHandler = async (_req, res) => {
   try {
-    const { status, data } = await proxyToDCGen("/health", "GET");
+    const { status, data } = await proxyToWebBench("/health", "GET");
     res.status(status).json(data);
   } catch (err) {
     res.status(502).json({
@@ -83,7 +83,7 @@ export const handleDCGenHealth: RequestHandler = async (_req, res) => {
 };
 
 // â”€â”€â”€ Submit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-export const handleDCGenSubmit: RequestHandler = async (req, res) => {
+export const handleWebBenchSubmit: RequestHandler = async (req, res) => {
   try {
     const body = req.body as { user_api_key?: string };
     if (!body.user_api_key) {
@@ -93,8 +93,8 @@ export const handleDCGenSubmit: RequestHandler = async (req, res) => {
       return;
     }
 
-    const { status, data } = await proxyToDCGen("/submit", "POST", req.body);
-    res.status(status).json(data as DCGenSubmitResponse);
+    const { status, data } = await proxyToWebBench("/submit", "POST", req.body);
+    res.status(status).json(data as WebBenchSubmitResponse);
   } catch (err) {
     res.status(502).json({
       message: "Cannot reach WebBench API server",
@@ -116,7 +116,7 @@ export const handleDCGenSubmit: RequestHandler = async (req, res) => {
  *
  * Saves the image to a temp directory and calls /submit on the WebBench API.
  */
-export const handleDCGenUploadAndSubmit: RequestHandler = async (req, res) => {
+export const handleWebBenchUploadAndSubmit: RequestHandler = async (req, res) => {
   try {
     // We receive the image as base64 from the frontend
     const { image, model, method, reference_html, user_api_key, user_base_url } = req.body as {
@@ -146,7 +146,7 @@ export const handleDCGenUploadAndSubmit: RequestHandler = async (req, res) => {
     const path = await import("path");
     const os = await import("os");
 
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "dcgen-demo-"));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "webbench-demo-"));
     const imgBuffer = Buffer.from(image, "base64");
     const imgPath = path.join(tmpDir, "input.png");
     fs.writeFileSync(imgPath, imgBuffer);
@@ -176,7 +176,7 @@ export const handleDCGenUploadAndSubmit: RequestHandler = async (req, res) => {
     if (user_api_key) submitBody.user_api_key = user_api_key;
     if (user_base_url) submitBody.user_base_url = user_base_url;
 
-    const { status, data } = await proxyToDCGen("/submit", "POST", submitBody);
+    const { status, data } = await proxyToWebBench("/submit", "POST", submitBody);
     res.status(status).json(data);
   } catch (err) {
     res.status(502).json({
@@ -187,7 +187,7 @@ export const handleDCGenUploadAndSubmit: RequestHandler = async (req, res) => {
 };
 
 // â”€â”€â”€ Poll â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-export const handleDCGenPoll: RequestHandler = async (req, res) => {
+export const handleWebBenchPoll: RequestHandler = async (req, res) => {
   try {
     const runId = req.query.run_id as string;
     if (!runId) {
@@ -195,8 +195,8 @@ export const handleDCGenPoll: RequestHandler = async (req, res) => {
       return;
     }
     const qs = `run_id=${encodeURIComponent(runId)}`;
-    const { status, data } = await proxyToDCGen("/poll-jobs", "GET", undefined, qs);
-    res.status(status).json(data as DCGenPollResponse);
+    const { status, data } = await proxyToWebBench("/poll-jobs", "GET", undefined, qs);
+    res.status(status).json(data as WebBenchPollResponse);
   } catch (err) {
     res.status(502).json({
       message: "Cannot reach WebBench API server",
@@ -206,14 +206,14 @@ export const handleDCGenPoll: RequestHandler = async (req, res) => {
 };
 
 // â”€â”€â”€ Report â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-export const handleDCGenReport: RequestHandler = async (req, res) => {
+export const handleWebBenchReport: RequestHandler = async (req, res) => {
   try {
-    const { status, data } = await proxyToDCGen(
+    const { status, data } = await proxyToWebBench(
       "/get-report",
       "POST",
       req.body
     );
-    res.status(status).json(data as DCGenReportResponse);
+    res.status(status).json(data as WebBenchReportResponse);
   } catch (err) {
     res.status(502).json({
       message: "Cannot reach WebBench API server",
@@ -223,7 +223,7 @@ export const handleDCGenReport: RequestHandler = async (req, res) => {
 };
 
 // â”€â”€â”€ Stop run â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-export const handleDCGenStopRun: RequestHandler = async (req, res) => {
+export const handleWebBenchStopRun: RequestHandler = async (req, res) => {
   try {
     const { run_id } = req.body as { run_id?: string };
     if (!run_id) {
@@ -231,11 +231,11 @@ export const handleDCGenStopRun: RequestHandler = async (req, res) => {
       return;
     }
 
-    const { status, data } = await proxyToDCGen("/stop-run", "POST", {
+    const { status, data } = await proxyToWebBench("/stop-run", "POST", {
       run_id,
       run_evaluation: false,
     });
-    res.status(status).json(data as DCGenStopRunResponse);
+    res.status(status).json(data as WebBenchStopRunResponse);
   } catch (err) {
     res.status(502).json({
       message: "Cannot reach WebBench API server",
@@ -259,7 +259,7 @@ export const handleDCGenStopRun: RequestHandler = async (req, res) => {
  *
  * Then calls /submit with the temp dir as input_dir.
  */
-export const handleDCGenUploadFolderAndSubmit: RequestHandler = async (
+export const handleWebBenchUploadFolderAndSubmit: RequestHandler = async (
   req,
   res
 ) => {
@@ -297,7 +297,7 @@ export const handleDCGenUploadFolderAndSubmit: RequestHandler = async (
     const path = await import("path");
     const os = await import("os");
 
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "dcgen-folder-"));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "webbench-folder-"));
 
     // Track image stems so we know which HTML files are references
     const imageStems = new Set<string>();
@@ -339,7 +339,7 @@ export const handleDCGenUploadFolderAndSubmit: RequestHandler = async (
     if (user_api_key) submitBody.user_api_key = user_api_key;
     if (user_base_url) submitBody.user_base_url = user_base_url;
 
-    const { status, data } = await proxyToDCGen("/submit", "POST", submitBody);
+    const { status, data } = await proxyToWebBench("/submit", "POST", submitBody);
     res.status(status).json(data);
   } catch (err) {
     res.status(502).json({
@@ -352,10 +352,10 @@ export const handleDCGenUploadFolderAndSubmit: RequestHandler = async (
 // â”€â”€â”€ List models from external providers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 /**
  * Fetches available models from a provider's API.
- * POST /api/dcgen/list-models
+ * POST /api/webbench/list-models
  * Body: { provider: "openai" | "claude" | "gemini" | "openkey", api_key: string, base_url?: string }
  */
-export const handleDCGenListModels: RequestHandler = async (req, res) => {
+export const handleWebBenchListModels: RequestHandler = async (req, res) => {
   try {
     const { provider, api_key, base_url } = req.body as {
       provider: string;
@@ -445,9 +445,9 @@ export const handleDCGenListModels: RequestHandler = async (req, res) => {
 // â”€â”€â”€ Result files (image / HTML) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 /**
  * Reads the generated screenshot PNG from the WebBench results directory.
- * GET /api/dcgen/result-image/:runId/:instanceId
+ * GET /api/webbench/result-image/:runId/:instanceId
  */
-export const handleDCGenResultImage: RequestHandler = async (req, res) => {
+export const handleWebBenchResultImage: RequestHandler = async (req, res) => {
   try {
     const { runId, instanceId } = req.params;
     const fs = await import("fs");
@@ -455,7 +455,7 @@ export const handleDCGenResultImage: RequestHandler = async (req, res) => {
 
     // WebBench stores results at: <results>/<runId>/<instanceId>.png
     // We ask the WebBench API for the report to get the output_dir
-    const { status, data } = await proxyToDCGen("/get-report", "POST", {
+    const { status, data } = await proxyToWebBench("/get-report", "POST", {
       run_id: runId,
     });
 
@@ -464,7 +464,7 @@ export const handleDCGenResultImage: RequestHandler = async (req, res) => {
       return;
     }
 
-    const report = (data as DCGenReportResponse).report;
+    const report = (data as WebBenchReportResponse).report;
     const outputDir = (report.results as unknown as { output_dir?: string })
       ?.output_dir;
 
@@ -482,7 +482,7 @@ export const handleDCGenResultImage: RequestHandler = async (req, res) => {
     const imageBuffer = fs.readFileSync(screenshotPath);
     const base64 = imageBuffer.toString("base64");
 
-    const response: DCGenResultImageResponse = { image: base64 };
+    const response: WebBenchResultImageResponse = { image: base64 };
     res.json(response);
   } catch (err) {
     res.status(502).json({
@@ -494,15 +494,15 @@ export const handleDCGenResultImage: RequestHandler = async (req, res) => {
 
 /**
  * Reads the generated HTML from the WebBench results directory.
- * GET /api/dcgen/result-html/:runId/:instanceId
+ * GET /api/webbench/result-html/:runId/:instanceId
  */
-export const handleDCGenResultHtml: RequestHandler = async (req, res) => {
+export const handleWebBenchResultHtml: RequestHandler = async (req, res) => {
   try {
     const { runId, instanceId } = req.params;
     const fs = await import("fs");
     const path = await import("path");
 
-    const { status, data } = await proxyToDCGen("/get-report", "POST", {
+    const { status, data } = await proxyToWebBench("/get-report", "POST", {
       run_id: runId,
     });
 
@@ -511,7 +511,7 @@ export const handleDCGenResultHtml: RequestHandler = async (req, res) => {
       return;
     }
 
-    const report = (data as DCGenReportResponse).report;
+    const report = (data as WebBenchReportResponse).report;
     const outputDir = (report.results as unknown as { output_dir?: string })
       ?.output_dir;
 
@@ -527,7 +527,7 @@ export const handleDCGenResultHtml: RequestHandler = async (req, res) => {
     }
 
     const html = fs.readFileSync(htmlPath, "utf-8");
-    const response: DCGenResultHtmlResponse = { html };
+    const response: WebBenchResultHtmlResponse = { html };
     res.json(response);
   } catch (err) {
     res.status(502).json({
@@ -539,9 +539,9 @@ export const handleDCGenResultHtml: RequestHandler = async (req, res) => {
 
 /**
  * Downloads all run artifacts as a ZIP file from the WebBench backend.
- * GET /api/dcgen/download-artifacts/:runId
+ * GET /api/webbench/download-artifacts/:runId
  */
-export const handleDCGenDownloadArtifacts: RequestHandler = async (req, res) => {
+export const handleWebBenchDownloadArtifacts: RequestHandler = async (req, res) => {
   try {
     const { runId } = req.params;
     if (!runId) {
