@@ -100,6 +100,9 @@ interface DemoResult {
 const IMAGE_EXTS = /\.(png|jpe?g|gif|bmp|webp|svg|tiff?)$/i;
 const HTML_EXTS = /\.(html?|htm)$/i;
 const CSS_EXTS = /\.css$/i;
+const CPU_DISABLED_METHODS = new Set(["uicopilot"]);
+const CPU_DISABLED_METHOD_MESSAGE =
+  "UICopilot is disabled in Live Demo because this deployment only has CPU available.";
 
 function classifyFile(name: string): UploadedFile["type"] {
   if (IMAGE_EXTS.test(name)) return "image";
@@ -142,6 +145,10 @@ function toNumber(value: unknown): number | null {
     if (Number.isFinite(parsed)) return parsed;
   }
   return null;
+}
+
+function isCpuDisabledMethod(methodName: string): boolean {
+  return CPU_DISABLED_METHODS.has(methodName.toLowerCase());
 }
 
 // â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -271,6 +278,21 @@ export default function LiveDemo() {
       setFetchingModels(false);
     }
   }, [provider, userApiKey, userBaseUrl]);
+
+  const handleMethodChange = useCallback((nextMethod: string) => {
+    if (isCpuDisabledMethod(nextMethod)) {
+      setError(CPU_DISABLED_METHOD_MESSAGE);
+      return;
+    }
+    setMethod(nextMethod);
+    setError(null);
+  }, []);
+
+  const canSubmitSelectedMethod = () => {
+    if (!isCpuDisabledMethod(method)) return true;
+    setError(CPU_DISABLED_METHOD_MESSAGE);
+    return false;
+  };
 
   // â”€â”€ Cleanup polling on unmount â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
@@ -591,6 +613,7 @@ export default function LiveDemo() {
       setError("Please select an image first");
       return;
     }
+    if (!canSubmitSelectedMethod()) return;
 
     setStage("uploading");
     setError(null);
@@ -652,6 +675,7 @@ export default function LiveDemo() {
       setError("No image files found in the uploaded folder");
       return;
     }
+    if (!canSubmitSelectedMethod()) return;
 
     setStage("uploading");
     setError(null);
@@ -1291,7 +1315,7 @@ export default function LiveDemo() {
                       <label className="text-xs font-semibold text-text-secondary mb-1.5 block uppercase tracking-wider">
                         Method
                       </label>
-                      <Select value={method} onValueChange={setMethod}>
+                      <Select value={method} onValueChange={handleMethodChange}>
                         <SelectTrigger className="bg-white">
                           <SelectValue />
                         </SelectTrigger>
@@ -1299,7 +1323,9 @@ export default function LiveDemo() {
                           {(supportedMethods.length > 0
                             ? supportedMethods
                             : ["dcgen", "direct"]
-                          ).map((m) => (
+                          )
+                            .filter((m) => !isCpuDisabledMethod(m))
+                            .map((m) => (
                             <SelectItem key={m} value={m}>
                               {m}
                             </SelectItem>
@@ -2275,4 +2301,3 @@ function StepCard({
     </div>
   );
 }
-
