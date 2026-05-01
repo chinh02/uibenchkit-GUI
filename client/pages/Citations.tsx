@@ -174,7 +174,7 @@ export default function Citations() {
       <Header />
       <div className="min-h-screen bg-warm-bg lg:ml-64">
         <main className="px-6 sm:px-8 lg:px-12 pt-28 pb-12">
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <div className="flex flex-col gap-4 mb-8">
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-amber-100 text-amber-700 border border-amber-200">
@@ -228,7 +228,7 @@ export default function Citations() {
                       .map((entry) => (
                         <article
                           key={entry.id}
-                          className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
+                          className="w-full min-w-0 rounded-lg border border-gray-200 bg-white p-5 shadow-sm"
                         >
                           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div className="min-w-0">
@@ -275,8 +275,10 @@ export default function Citations() {
                             </Button>
                           </div>
 
-                          <pre className="mt-4 max-h-64 overflow-auto rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm leading-relaxed text-gray-800">
-                            <code>{entry.citations[format]}</code>
+                          <pre className="mt-4 h-56 w-full min-w-0 max-w-full overflow-auto rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm leading-relaxed text-gray-800 whitespace-pre-wrap break-words">
+                            <code className="whitespace-pre-wrap break-words">
+                              {entry.citations[format]}
+                            </code>
                           </pre>
                         </article>
                       ))}
