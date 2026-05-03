@@ -1,37 +1,37 @@
 /**
- * WebBench API Proxy
+ * UIBenchKit API Proxy
  *
- * Proxies requests from the frontend to the WebBench Flask API server.
- * This keeps the WebBench API URL and API key on the server side.
+ * Proxies requests from the frontend to the UIBenchKit Flask API server.
+ * This keeps the UIBenchKit API URL and API key on the server side.
  *
  * Environment variables:
- *   WEBBENCH_API_URL  - Base URL of the WebBench Flask server (default: http://localhost:5000)
- *   WEBBENCH_API_KEY  - API key for authenticating with WebBench (defaults to local dev key)
+ *   UIBENCHKIT_API_URL  - Base URL of the UIBenchKit Flask server (default: http://localhost:5000)
+ *   UIBENCHKIT_API_KEY  - API key for authenticating with UIBenchKit (defaults to local dev key)
  */
 import { RequestHandler } from "express";
 import type {
-  WebBenchSubmitResponse,
-  WebBenchPollResponse,
-  WebBenchReportResponse,
-  WebBenchHealthResponse,
-  WebBenchResultImageResponse,
-  WebBenchResultHtmlResponse,
-  WebBenchStopRunResponse,
+  UIBenchKitSubmitResponse,
+  UIBenchKitPollResponse,
+  UIBenchKitReportResponse,
+  UIBenchKitHealthResponse,
+  UIBenchKitResultImageResponse,
+  UIBenchKitResultHtmlResponse,
+  UIBenchKitStopRunResponse,
 } from "@shared/api";
 
-const WEBBENCH_API_URL = process.env.WEBBENCH_API_URL || "http://localhost:5000";
-const WEBBENCH_API_KEY = process.env.WEBBENCH_API_KEY || "dev-api-key-12345";
+const UIBENCHKIT_API_URL = process.env.UIBENCHKIT_API_URL || "http://localhost:5000";
+const UIBENCHKIT_API_KEY = process.env.UIBENCHKIT_API_KEY || "dev-api-key-12345";
 
-/** Helper: proxy a JSON request to WebBench */
-async function proxyToWebBench(
+/** Helper: proxy a JSON request to UIBenchKit */
+async function proxyToUIBenchKit(
   path: string,
   method: "GET" | "POST" | "DELETE",
   body?: unknown,
   queryString?: string
 ): Promise<{ status: number; data: unknown }> {
-  const url = `${WEBBENCH_API_URL}${path}${queryString ? `?${queryString}` : ""}`;
+  const url = `${UIBENCHKIT_API_URL}${path}${queryString ? `?${queryString}` : ""}`;
   const headers: Record<string, string> = {
-    "x-api-key": WEBBENCH_API_KEY,
+    "x-api-key": UIBENCHKIT_API_KEY,
     "Content-Type": "application/json",
   };
 
@@ -70,34 +70,34 @@ function getFilenameFromContentDisposition(
 }
 
 // â”€â”€â”€ Health â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-export const handleWebBenchHealth: RequestHandler = async (_req, res) => {
+export const handleUIBenchKitHealth: RequestHandler = async (_req, res) => {
   try {
-    const { status, data } = await proxyToWebBench("/health", "GET");
+    const { status, data } = await proxyToUIBenchKit("/health", "GET");
     res.status(status).json(data);
   } catch (err) {
     res.status(502).json({
-      message: "Cannot reach WebBench API server",
+      message: "Cannot reach UIBenchKit API server",
       error: String(err),
     });
   }
 };
 
 // â”€â”€â”€ Submit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-export const handleWebBenchSubmit: RequestHandler = async (req, res) => {
+export const handleUIBenchKitSubmit: RequestHandler = async (req, res) => {
   try {
     const body = req.body as { user_api_key?: string };
     if (!body.user_api_key) {
       res.status(400).json({
-        message: "A provider API key is required to submit a WebBench run.",
+        message: "A provider API key is required to submit a UIBenchKit run.",
       });
       return;
     }
 
-    const { status, data } = await proxyToWebBench("/submit", "POST", req.body);
-    res.status(status).json(data as WebBenchSubmitResponse);
+    const { status, data } = await proxyToUIBenchKit("/submit", "POST", req.body);
+    res.status(status).json(data as UIBenchKitSubmitResponse);
   } catch (err) {
     res.status(502).json({
-      message: "Cannot reach WebBench API server",
+      message: "Cannot reach UIBenchKit API server",
       error: String(err),
     });
   }
@@ -111,12 +111,12 @@ export const handleWebBenchSubmit: RequestHandler = async (req, res) => {
  *   - method: method name (e.g. "dcgen", "direct")
  *   - reference_html: (optional) ground-truth HTML source code.
  *       When provided, it is saved as `input.html` in the temp input
- *       directory so that WebBench evaluation can compute code similarity
+ *       directory so that UIBenchKit evaluation can compute code similarity
  *       and fine-grained metrics against the reference.
  *
- * Saves the image to a temp directory and calls /submit on the WebBench API.
+ * Saves the image to a temp directory and calls /submit on the UIBenchKit API.
  */
-export const handleWebBenchUploadAndSubmit: RequestHandler = async (req, res) => {
+export const handleUIBenchKitUploadAndSubmit: RequestHandler = async (req, res) => {
   try {
     // We receive the image as base64 from the frontend
     const { image, model, method, reference_html, user_api_key, user_base_url } = req.body as {
@@ -136,7 +136,7 @@ export const handleWebBenchUploadAndSubmit: RequestHandler = async (req, res) =>
     }
     if (!user_api_key) {
       res.status(400).json({
-        message: "A provider API key is required to submit a WebBench run.",
+        message: "A provider API key is required to submit a UIBenchKit run.",
       });
       return;
     }
@@ -146,7 +146,7 @@ export const handleWebBenchUploadAndSubmit: RequestHandler = async (req, res) =>
     const path = await import("path");
     const os = await import("os");
 
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "webbench-demo-"));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "uibenchkit-demo-"));
     const imgBuffer = Buffer.from(image, "base64");
     const imgPath = path.join(tmpDir, "input.png");
     fs.writeFileSync(imgPath, imgBuffer);
@@ -160,34 +160,34 @@ export const handleWebBenchUploadAndSubmit: RequestHandler = async (req, res) =>
 
     // Write reference HTML if provided (enables code similarity + fine-grained evaluation)
     // The file must be named `input.html` to match the image name `input.png`
-    // so that WebBench can find it as the reference during evaluation.
+    // so that UIBenchKit can find it as the reference during evaluation.
     if (reference_html && reference_html.trim()) {
       const refHtmlPath = path.join(tmpDir, "input.html");
       fs.writeFileSync(refHtmlPath, reference_html, "utf-8");
     }
 
-    // Submit to WebBench with the temp directory as input_dir
+    // Submit to UIBenchKit with the temp directory as input_dir
     const submitBody: Record<string, unknown> = {
       model,
       method,
       input_dir: tmpDir,
-      api_key: WEBBENCH_API_KEY,
+      api_key: UIBENCHKIT_API_KEY,
     };
     if (user_api_key) submitBody.user_api_key = user_api_key;
     if (user_base_url) submitBody.user_base_url = user_base_url;
 
-    const { status, data } = await proxyToWebBench("/submit", "POST", submitBody);
+    const { status, data } = await proxyToUIBenchKit("/submit", "POST", submitBody);
     res.status(status).json(data);
   } catch (err) {
     res.status(502).json({
-      message: "Failed to upload and submit to WebBench",
+      message: "Failed to upload and submit to UIBenchKit",
       error: String(err),
     });
   }
 };
 
 // â”€â”€â”€ Poll â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-export const handleWebBenchPoll: RequestHandler = async (req, res) => {
+export const handleUIBenchKitPoll: RequestHandler = async (req, res) => {
   try {
     const runId = req.query.run_id as string;
     if (!runId) {
@@ -195,35 +195,35 @@ export const handleWebBenchPoll: RequestHandler = async (req, res) => {
       return;
     }
     const qs = `run_id=${encodeURIComponent(runId)}`;
-    const { status, data } = await proxyToWebBench("/poll-jobs", "GET", undefined, qs);
-    res.status(status).json(data as WebBenchPollResponse);
+    const { status, data } = await proxyToUIBenchKit("/poll-jobs", "GET", undefined, qs);
+    res.status(status).json(data as UIBenchKitPollResponse);
   } catch (err) {
     res.status(502).json({
-      message: "Cannot reach WebBench API server",
+      message: "Cannot reach UIBenchKit API server",
       error: String(err),
     });
   }
 };
 
 // â”€â”€â”€ Report â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-export const handleWebBenchReport: RequestHandler = async (req, res) => {
+export const handleUIBenchKitReport: RequestHandler = async (req, res) => {
   try {
-    const { status, data } = await proxyToWebBench(
+    const { status, data } = await proxyToUIBenchKit(
       "/get-report",
       "POST",
       req.body
     );
-    res.status(status).json(data as WebBenchReportResponse);
+    res.status(status).json(data as UIBenchKitReportResponse);
   } catch (err) {
     res.status(502).json({
-      message: "Cannot reach WebBench API server",
+      message: "Cannot reach UIBenchKit API server",
       error: String(err),
     });
   }
 };
 
 // â”€â”€â”€ Stop run â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-export const handleWebBenchStopRun: RequestHandler = async (req, res) => {
+export const handleUIBenchKitStopRun: RequestHandler = async (req, res) => {
   try {
     const { run_id } = req.body as { run_id?: string };
     if (!run_id) {
@@ -231,14 +231,14 @@ export const handleWebBenchStopRun: RequestHandler = async (req, res) => {
       return;
     }
 
-    const { status, data } = await proxyToWebBench("/stop-run", "POST", {
+    const { status, data } = await proxyToUIBenchKit("/stop-run", "POST", {
       run_id,
       run_evaluation: false,
     });
-    res.status(status).json(data as WebBenchStopRunResponse);
+    res.status(status).json(data as UIBenchKitStopRunResponse);
   } catch (err) {
     res.status(502).json({
-      message: "Cannot reach WebBench API server",
+      message: "Cannot reach UIBenchKit API server",
       error: String(err),
     });
   }
@@ -253,13 +253,13 @@ export const handleWebBenchStopRun: RequestHandler = async (req, res) => {
  *   - method: method name
  *
  * Writes all files to a temp directory:
- *   - Images are saved as .png (WebBench scans for *.png)
+ *   - Images are saved as .png (UIBenchKit scans for *.png)
  *   - HTML files with names matching an image are kept as reference for evaluation
  *   - CSS and other assets are written as-is
  *
  * Then calls /submit with the temp dir as input_dir.
  */
-export const handleWebBenchUploadFolderAndSubmit: RequestHandler = async (
+export const handleUIBenchKitUploadFolderAndSubmit: RequestHandler = async (
   req,
   res
 ) => {
@@ -288,7 +288,7 @@ export const handleWebBenchUploadFolderAndSubmit: RequestHandler = async (
     }
     if (!user_api_key) {
       res.status(400).json({
-        message: "A provider API key is required to submit a WebBench run.",
+        message: "A provider API key is required to submit a UIBenchKit run.",
       });
       return;
     }
@@ -297,7 +297,7 @@ export const handleWebBenchUploadFolderAndSubmit: RequestHandler = async (
     const path = await import("path");
     const os = await import("os");
 
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "webbench-folder-"));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "uibenchkit-folder-"));
 
     // Track image stems so we know which HTML files are references
     const imageStems = new Set<string>();
@@ -329,21 +329,21 @@ export const handleWebBenchUploadFolderAndSubmit: RequestHandler = async (
     );
     fs.writeFileSync(path.join(tmpDir, "placeholder.png"), placeholderBuffer);
 
-    // Submit to WebBench
+    // Submit to UIBenchKit
     const submitBody: Record<string, unknown> = {
       model,
       method,
       input_dir: tmpDir,
-      api_key: WEBBENCH_API_KEY,
+      api_key: UIBENCHKIT_API_KEY,
     };
     if (user_api_key) submitBody.user_api_key = user_api_key;
     if (user_base_url) submitBody.user_base_url = user_base_url;
 
-    const { status, data } = await proxyToWebBench("/submit", "POST", submitBody);
+    const { status, data } = await proxyToUIBenchKit("/submit", "POST", submitBody);
     res.status(status).json(data);
   } catch (err) {
     res.status(502).json({
-      message: "Failed to upload folder and submit to WebBench",
+      message: "Failed to upload folder and submit to UIBenchKit",
       error: String(err),
     });
   }
@@ -352,10 +352,10 @@ export const handleWebBenchUploadFolderAndSubmit: RequestHandler = async (
 // â”€â”€â”€ List models from external providers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 /**
  * Fetches available models from a provider's API.
- * POST /api/webbench/list-models
+ * POST /api/uibenchkit/list-models
  * Body: { provider: "openai" | "claude" | "gemini" | "openkey", api_key: string, base_url?: string }
  */
-export const handleWebBenchListModels: RequestHandler = async (req, res) => {
+export const handleUIBenchKitListModels: RequestHandler = async (req, res) => {
   try {
     const { provider, api_key, base_url } = req.body as {
       provider: string;
@@ -444,18 +444,18 @@ export const handleWebBenchListModels: RequestHandler = async (req, res) => {
 
 // â”€â”€â”€ Result files (image / HTML) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 /**
- * Reads the generated screenshot PNG from the WebBench results directory.
- * GET /api/webbench/result-image/:runId/:instanceId
+ * Reads the generated screenshot PNG from the UIBenchKit results directory.
+ * GET /api/uibenchkit/result-image/:runId/:instanceId
  */
-export const handleWebBenchResultImage: RequestHandler = async (req, res) => {
+export const handleUIBenchKitResultImage: RequestHandler = async (req, res) => {
   try {
     const { runId, instanceId } = req.params;
     const fs = await import("fs");
     const path = await import("path");
 
-    // WebBench stores results at: <results>/<runId>/<instanceId>.png
-    // We ask the WebBench API for the report to get the output_dir
-    const { status, data } = await proxyToWebBench("/get-report", "POST", {
+    // UIBenchKit stores results at: <results>/<runId>/<instanceId>.png
+    // We ask the UIBenchKit API for the report to get the output_dir
+    const { status, data } = await proxyToUIBenchKit("/get-report", "POST", {
       run_id: runId,
     });
 
@@ -464,7 +464,7 @@ export const handleWebBenchResultImage: RequestHandler = async (req, res) => {
       return;
     }
 
-    const report = (data as WebBenchReportResponse).report;
+    const report = (data as UIBenchKitReportResponse).report;
     const outputDir = (report.results as unknown as { output_dir?: string })
       ?.output_dir;
 
@@ -482,7 +482,7 @@ export const handleWebBenchResultImage: RequestHandler = async (req, res) => {
     const imageBuffer = fs.readFileSync(screenshotPath);
     const base64 = imageBuffer.toString("base64");
 
-    const response: WebBenchResultImageResponse = { image: base64 };
+    const response: UIBenchKitResultImageResponse = { image: base64 };
     res.json(response);
   } catch (err) {
     res.status(502).json({
@@ -493,16 +493,16 @@ export const handleWebBenchResultImage: RequestHandler = async (req, res) => {
 };
 
 /**
- * Reads the generated HTML from the WebBench results directory.
- * GET /api/webbench/result-html/:runId/:instanceId
+ * Reads the generated HTML from the UIBenchKit results directory.
+ * GET /api/uibenchkit/result-html/:runId/:instanceId
  */
-export const handleWebBenchResultHtml: RequestHandler = async (req, res) => {
+export const handleUIBenchKitResultHtml: RequestHandler = async (req, res) => {
   try {
     const { runId, instanceId } = req.params;
     const fs = await import("fs");
     const path = await import("path");
 
-    const { status, data } = await proxyToWebBench("/get-report", "POST", {
+    const { status, data } = await proxyToUIBenchKit("/get-report", "POST", {
       run_id: runId,
     });
 
@@ -511,7 +511,7 @@ export const handleWebBenchResultHtml: RequestHandler = async (req, res) => {
       return;
     }
 
-    const report = (data as WebBenchReportResponse).report;
+    const report = (data as UIBenchKitReportResponse).report;
     const outputDir = (report.results as unknown as { output_dir?: string })
       ?.output_dir;
 
@@ -527,7 +527,7 @@ export const handleWebBenchResultHtml: RequestHandler = async (req, res) => {
     }
 
     const html = fs.readFileSync(htmlPath, "utf-8");
-    const response: WebBenchResultHtmlResponse = { html };
+    const response: UIBenchKitResultHtmlResponse = { html };
     res.json(response);
   } catch (err) {
     res.status(502).json({
@@ -538,10 +538,10 @@ export const handleWebBenchResultHtml: RequestHandler = async (req, res) => {
 };
 
 /**
- * Downloads all run artifacts as a ZIP file from the WebBench backend.
- * GET /api/webbench/download-artifacts/:runId
+ * Downloads all run artifacts as a ZIP file from the UIBenchKit backend.
+ * GET /api/uibenchkit/download-artifacts/:runId
  */
-export const handleWebBenchDownloadArtifacts: RequestHandler = async (req, res) => {
+export const handleUIBenchKitDownloadArtifacts: RequestHandler = async (req, res) => {
   try {
     const { runId } = req.params;
     if (!runId) {
@@ -550,10 +550,10 @@ export const handleWebBenchDownloadArtifacts: RequestHandler = async (req, res) 
     }
 
     const qs = `run_id=${encodeURIComponent(runId)}`;
-    const upstreamResp = await fetch(`${WEBBENCH_API_URL}/download-artifacts?${qs}`, {
+    const upstreamResp = await fetch(`${UIBENCHKIT_API_URL}/download-artifacts?${qs}`, {
       method: "GET",
       headers: {
-        "x-api-key": WEBBENCH_API_KEY,
+        "x-api-key": UIBENCHKIT_API_KEY,
       },
     });
 
@@ -565,7 +565,7 @@ export const handleWebBenchDownloadArtifacts: RequestHandler = async (req, res) 
       } else {
         const errorText = await upstreamResp.text().catch(() => "");
         res.status(upstreamResp.status).json({
-          message: "Failed to download artifacts from WebBench",
+          message: "Failed to download artifacts from UIBenchKit",
           error: errorText || upstreamResp.statusText,
         });
       }

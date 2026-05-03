@@ -4,7 +4,7 @@
 			"path": "."
 		},
 		{
-			"path": "../web-bench-experiments"
+			"path": "../uibenchkit-experiments"
 		}
 	],
 	"settings": {}

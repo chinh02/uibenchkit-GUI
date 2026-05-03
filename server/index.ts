@@ -4,18 +4,18 @@ import cors from "cors";
 import { handleDemo } from "./routes/demo";
 import { handleGitHubProxy } from "./routes/github-proxy";
 import {
-  handleWebBenchHealth,
-  handleWebBenchSubmit,
-  handleWebBenchUploadAndSubmit,
-  handleWebBenchPoll,
-  handleWebBenchReport,
-  handleWebBenchResultImage,
-  handleWebBenchResultHtml,
-  handleWebBenchDownloadArtifacts,
-  handleWebBenchUploadFolderAndSubmit,
-  handleWebBenchListModels,
-  handleWebBenchStopRun,
-} from "./routes/webbench-proxy";
+  handleUIBenchKitHealth,
+  handleUIBenchKitSubmit,
+  handleUIBenchKitUploadAndSubmit,
+  handleUIBenchKitPoll,
+  handleUIBenchKitReport,
+  handleUIBenchKitResultImage,
+  handleUIBenchKitResultHtml,
+  handleUIBenchKitDownloadArtifacts,
+  handleUIBenchKitUploadFolderAndSubmit,
+  handleUIBenchKitListModels,
+  handleUIBenchKitStopRun,
+} from "./routes/uibenchkit-proxy";
 
 export function createServer() {
   const app = express();
@@ -25,10 +25,10 @@ export function createServer() {
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-  const webbenchProxySecret = process.env.WEBBENCH_PROXY_SECRET;
-  if (webbenchProxySecret) {
-    app.use("/api/webbench", (req, res, next) => {
-      if (req.header("x-webbench-proxy-secret") !== webbenchProxySecret) {
+  const uibenchkitProxySecret = process.env.UIBENCHKIT_PROXY_SECRET;
+  if (uibenchkitProxySecret) {
+    app.use("/api/uibenchkit", (req, res, next) => {
+      if (req.header("x-uibenchkit-proxy-secret") !== uibenchkitProxySecret) {
         res.status(403).json({ message: "Forbidden" });
         return;
       }
@@ -47,18 +47,18 @@ export function createServer() {
   // GitHub proxy for fetching private repo data (replaces Netlify function)
   app.get("/.netlify/functions/github-proxy", handleGitHubProxy);
 
-  // WebBench demo API proxy
-  app.get("/api/webbench/health", handleWebBenchHealth);
-  app.post("/api/webbench/submit", handleWebBenchSubmit);
-  app.post("/api/webbench/upload-and-submit", handleWebBenchUploadAndSubmit);
-  app.post("/api/webbench/upload-folder-and-submit", handleWebBenchUploadFolderAndSubmit);
-  app.get("/api/webbench/poll", handleWebBenchPoll);
-  app.post("/api/webbench/report", handleWebBenchReport);
-  app.post("/api/webbench/stop-run", handleWebBenchStopRun);
-  app.post("/api/webbench/list-models", handleWebBenchListModels);
-  app.get("/api/webbench/result-image/:runId/:instanceId", handleWebBenchResultImage);
-  app.get("/api/webbench/result-html/:runId/:instanceId", handleWebBenchResultHtml);
-  app.get("/api/webbench/download-artifacts/:runId", handleWebBenchDownloadArtifacts);
+  // UIBenchKit demo API proxy
+  app.get("/api/uibenchkit/health", handleUIBenchKitHealth);
+  app.post("/api/uibenchkit/submit", handleUIBenchKitSubmit);
+  app.post("/api/uibenchkit/upload-and-submit", handleUIBenchKitUploadAndSubmit);
+  app.post("/api/uibenchkit/upload-folder-and-submit", handleUIBenchKitUploadFolderAndSubmit);
+  app.get("/api/uibenchkit/poll", handleUIBenchKitPoll);
+  app.post("/api/uibenchkit/report", handleUIBenchKitReport);
+  app.post("/api/uibenchkit/stop-run", handleUIBenchKitStopRun);
+  app.post("/api/uibenchkit/list-models", handleUIBenchKitListModels);
+  app.get("/api/uibenchkit/result-image/:runId/:instanceId", handleUIBenchKitResultImage);
+  app.get("/api/uibenchkit/result-html/:runId/:instanceId", handleUIBenchKitResultHtml);
+  app.get("/api/uibenchkit/download-artifacts/:runId", handleUIBenchKitDownloadArtifacts);
 
   return app;
 }

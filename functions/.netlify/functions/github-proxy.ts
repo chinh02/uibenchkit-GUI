@@ -58,7 +58,7 @@ export const onRequestGet = async ({
     headers: {
       Authorization: `Bearer ${githubToken}`,
       Accept: "application/vnd.github.v3.raw",
-      "User-Agent": "WebBench-Leaderboard",
+      "User-Agent": "UIBenchKit-Leaderboard",
     },
   });
 

@@ -32,17 +32,17 @@ The leaderboard uses a Cloudflare Pages Function at `/.netlify/functions/github-
 Set these Cloudflare Pages variables:
 
 - `GITHUB_TOKEN`: GitHub token with read access to the leaderboard repository. Store this as a secret.
-- `GITHUB_REPO`: `chinh02/web-bench-experiments`
+- `GITHUB_REPO`: `chinh02/uibenchkit-experiments`
 - `GITHUB_BRANCH`: `main`
 
-## Live Demo WebBench proxy
+## Live Demo UIBenchKit proxy
 
-The Live Demo calls `/api/webbench/*`. In production, Cloudflare Pages forwards those requests to the Node/Express proxy running beside the WebBench Flask API on the Google VM.
+The Live Demo calls `/api/uibenchkit/*`. In production, Cloudflare Pages forwards those requests to the Node/Express proxy running beside the UIBenchKit Flask API on the Google VM.
 
 Set this Cloudflare Pages variable:
 
-- `WEBBENCH_PROXY_URL`: public URL for the VM Node proxy, for example `https://webbench-api.example.com`
-- `WEBBENCH_PROXY_SECRET`: shared secret sent by Cloudflare Pages to the VM proxy. Store this as a secret.
+- `UIBENCHKIT_PROXY_URL`: public URL for the VM Node proxy, for example `https://uibenchkit-api.example.com`
+- `UIBENCHKIT_PROXY_SECRET`: shared secret sent by Cloudflare Pages to the VM proxy. Store this as a secret.
 
 On the VM, run the frontend server/proxy with:
 
@@ -50,11 +50,11 @@ On the VM, run the frontend server/proxy with:
 cd /path/to/test-builder-vibe-coding
 pnpm install --frozen-lockfile
 pnpm build
-WEBBENCH_API_URL=http://127.0.0.1:5000 WEBBENCH_PROXY_SECRET=your_shared_secret PORT=3000 node dist/server/node-build.mjs
+UIBENCHKIT_API_URL=http://127.0.0.1:5000 UIBENCHKIT_PROXY_SECRET=your_shared_secret PORT=3000 node dist/server/node-build.mjs
 ```
 
-Expose `http://127.0.0.1:3000` publicly with Cloudflare Tunnel or another HTTPS reverse proxy. The Cloudflare Pages Function keeps the browser calling same-origin `/api/webbench/*`.
+Expose `http://127.0.0.1:3000` publicly with Cloudflare Tunnel or another HTTPS reverse proxy. The Cloudflare Pages Function keeps the browser calling same-origin `/api/uibenchkit/*`.
 
 ## Live Demo note
 
-Cloudflare Pages will only serve the static frontend. The current Live Demo calls `/api/webbench/...`, which requires the Express proxy or another backend. If the Google VM is turned off, hide or remove the Live Demo before deploying the public static site.
+Cloudflare Pages will only serve the static frontend. The current Live Demo calls `/api/uibenchkit/...`, which requires the Express proxy or another backend. If the Google VM is turned off, hide or remove the Live Demo before deploying the public static site.

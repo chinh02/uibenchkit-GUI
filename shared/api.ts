@@ -12,11 +12,11 @@ export interface DemoResponse {
 }
 
 // ============================================================
-// WebBench demo API types
+// UIBenchKit demo API types
 // ============================================================
 
-/** Response from POST /api/webbench/submit */
-export interface WebBenchSubmitResponse {
+/** Response from POST /api/uibenchkit/submit */
+export interface UIBenchKitSubmitResponse {
   message: string;
   launched: boolean;
   run_id: string;
@@ -26,8 +26,8 @@ export interface WebBenchSubmitResponse {
   dataset?: string;
 }
 
-/** Response from POST /api/webbench/stop-run */
-export interface WebBenchStopRunResponse {
+/** Response from POST /api/uibenchkit/stop-run */
+export interface UIBenchKitStopRunResponse {
   message: string;
   run_id: string;
   completed_instances?: number;
@@ -36,8 +36,8 @@ export interface WebBenchStopRunResponse {
   evaluation_started?: boolean;
 }
 
-/** Response from GET /api/webbench/poll */
-export interface WebBenchPollResponse {
+/** Response from GET /api/uibenchkit/poll */
+export interface UIBenchKitPollResponse {
   run_id: string;
   status: "pending" | "running" | "completed" | "failed" | "stopped";
   dataset?: string;
@@ -53,8 +53,8 @@ export interface WebBenchPollResponse {
   cost_estimate?: Record<string, unknown>;
 }
 
-/** Response from POST /api/webbench/report */
-export interface WebBenchReportResponse {
+/** Response from POST /api/uibenchkit/report */
+export interface UIBenchKitReportResponse {
   report: {
     run_id: string;
     model: string;
@@ -86,8 +86,8 @@ export interface WebBenchReportResponse {
   };
 }
 
-/** Response from GET /api/webbench/health */
-export interface WebBenchHealthResponse {
+/** Response from GET /api/uibenchkit/health */
+export interface UIBenchKitHealthResponse {
   status: string;
   version: string;
   supported_methods: string[];
@@ -97,19 +97,19 @@ export interface WebBenchHealthResponse {
 }
 
 /** Response for fetching a generated HTML file */
-export interface WebBenchResultFile {
+export interface UIBenchKitResultFile {
   html: string;
   screenshotUrl?: string;
 }
 
-/** Response from GET /api/webbench/result-image/:runId/:instanceId */
-export interface WebBenchResultImageResponse {
+/** Response from GET /api/uibenchkit/result-image/:runId/:instanceId */
+export interface UIBenchKitResultImageResponse {
   /** base64-encoded PNG screenshot */
   image: string;
 }
 
-/** Response from GET /api/webbench/result-html/:runId/:instanceId */
-export interface WebBenchResultHtmlResponse {
+/** Response from GET /api/uibenchkit/result-html/:runId/:instanceId */
+export interface UIBenchKitResultHtmlResponse {
   html: string;
 }
 

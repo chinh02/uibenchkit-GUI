@@ -3,7 +3,7 @@ import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
-const resultsRepoUrl = "https://github.com/chinh02/web-bench-experiments";
+const resultsRepoUrl = "https://github.com/chinh02/uibenchkit-experiments";
 
 const checklist = [
   "Leaderboard result file with dataset, method, model, and metric columns filled in.",
@@ -17,7 +17,7 @@ const steps = [
     title: "Clone the results repository",
     body: "Fork or clone the repository that backs the public leaderboard, then create a new branch for your submission.",
     code: `git clone ${resultsRepoUrl}.git
-cd web-bench-experiments
+cd uibenchkit-experiments
 git checkout -b submit/my-model-results`,
   },
   {

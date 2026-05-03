@@ -1,4 +1,4 @@
-# Tool Usage Brainstorm for WebBench Paper
+# Tool Usage Brainstorm for UIBenchKit Paper
 
 ## Core Problem
 Your current `Tool Usage` section is accurate, but it reads too much like a summary of the architecture:
@@ -41,7 +41,7 @@ Good emphasis:
 
 Why this works:
 
-- it highlights the benchmark value of WebBench,
+- it highlights the benchmark value of UIBenchKit,
 - it matches the tool-and-dataset spirit of ASE,
 - it avoids repeating architectural internals.
 
@@ -56,7 +56,7 @@ Example:
 
 - a researcher wants to compare `dcgen` and `direct` on the same small subset,
 - both runs are submitted with identical input conditions,
-- WebBench returns comparable HTML outputs, screenshots, and metrics,
+- UIBenchKit returns comparable HTML outputs, screenshots, and metrics,
 - the user inspects differences in both leaderboard metrics and rendered outputs.
 
 Why this works:
@@ -126,21 +126,21 @@ Best if you want the tool to sound useful for researchers.
 
 Key message:
 
-> WebBench enables a researcher to reproduce a published design-to-code evaluation without reimplementing method-specific pipelines or metric scripts.
+> UIBenchKit enables a researcher to reproduce a published design-to-code evaluation without reimplementing method-specific pipelines or metric scripts.
 
 ### Option B: Fair Comparison
 Best if you want to stress the benchmark contribution.
 
 Key message:
 
-> WebBench enables side-by-side comparison of heterogeneous methods under one execution and evaluation setting.
+> UIBenchKit enables side-by-side comparison of heterogeneous methods under one execution and evaluation setting.
 
 ### Option C: Demonstration and Accessibility
 Best if you want to stress the demo-track angle.
 
 Key message:
 
-> WebBench lowers the barrier to entry by exposing the same backend workflow through an interactive interface.
+> UIBenchKit lowers the barrier to entry by exposing the same backend workflow through an interactive interface.
 
 ## Stronger Content to Include
 These are the details that make the usage section feel concrete rather than repetitive:
@@ -174,7 +174,7 @@ These are not wrong, but they belong in Section II and make Section IV feel repe
 Use this if you want the usage section to reinforce the benchmark contribution.
 
 #### `A. Reproducing and Comparing Benchmark Runs`
-WebBench is designed to support a common research workflow in which a user reproduces an existing design-to-code evaluation or compares several methods under a shared setting. A typical session begins by selecting a benchmark dataset, a generation method, and a target model. The user then launches the run through the CLI or REST API, which allows the same workflow to be embedded into scripts or executed interactively from the command line. During execution, WebBench exposes run status through polling interfaces and records intermediate artifacts, making it possible to monitor progress and recover from interrupted experiments.
+UIBenchKit is designed to support a common research workflow in which a user reproduces an existing design-to-code evaluation or compares several methods under a shared setting. A typical session begins by selecting a benchmark dataset, a generation method, and a target model. The user then launches the run through the CLI or REST API, which allows the same workflow to be embedded into scripts or executed interactively from the command line. During execution, UIBenchKit exposes run status through polling interfaces and records intermediate artifacts, making it possible to monitor progress and recover from interrupted experiments.
 
 After completion, the tool returns a consolidated report containing generated HTML outputs, rendered screenshots, token statistics, and evaluation scores. Because the same submission and reporting workflow is shared across all supported methods, the user can repeat this process with alternative methods or models and directly compare the resulting outputs under identical benchmark conditions. This usage mode is particularly useful for reproducing published baselines, testing newly added methods, and generating leaderboard-ready result files without reimplementing the surrounding infrastructure.
 
@@ -182,15 +182,15 @@ After completion, the tool returns a consolidated report containing generated HT
 Use this if you want a more direct "why the tool matters" tone.
 
 #### `A. Comparing Methods Under a Unified Setting`
-A central use case of WebBench is controlled comparison among design-to-code methods. For example, a researcher may wish to compare a decomposition-based method such as DCGen against a direct prompting baseline on the same subset of benchmark inputs. In WebBench, both runs can be launched through the same CLI or API interface by changing only the method and model parameters, while leaving the rest of the workflow unchanged. The tool then produces standardized artifacts and reports for each run, including generated code, rendered screenshots, token usage, and evaluation scores.
+A central use case of UIBenchKit is controlled comparison among design-to-code methods. For example, a researcher may wish to compare a decomposition-based method such as DCGen against a direct prompting baseline on the same subset of benchmark inputs. In UIBenchKit, both runs can be launched through the same CLI or API interface by changing only the method and model parameters, while leaving the rest of the workflow unchanged. The tool then produces standardized artifacts and reports for each run, including generated code, rendered screenshots, token usage, and evaluation scores.
 
-This usage pattern is valuable because it shifts effort away from one-off engineering glue code and toward actual empirical analysis. Rather than separately implementing preprocessing, rendering, and metric scripts for each method, the user can focus on interpreting differences in structural similarity, visual fidelity, fine-grained alignment, and computational overhead. As a result, WebBench supports a more repeatable and transparent form of experimental comparison.
+This usage pattern is valuable because it shifts effort away from one-off engineering glue code and toward actual empirical analysis. Rather than separately implementing preprocessing, rendering, and metric scripts for each method, the user can focus on interpreting differences in structural similarity, visual fidelity, fine-grained alignment, and computational overhead. As a result, UIBenchKit supports a more repeatable and transparent form of experimental comparison.
 
 ### Version 3: Demo-Centric
 Use this if reviewers care strongly about usability.
 
 #### `B. Interactive Exploration with the Web Interface`
-In addition to its programmatic interfaces, WebBench provides a web-based frontend for lightweight experimentation and result inspection. A user may upload either a single screenshot or a folder of benchmark-style inputs, select a provider, model, and generation method, and then launch a run directly from the browser. Once execution finishes, the interface presents the generated HTML, rendered screenshot, and evaluation scores together, enabling the user to inspect qualitative failures and quantitative outcomes in the same view.
+In addition to its programmatic interfaces, UIBenchKit provides a web-based frontend for lightweight experimentation and result inspection. A user may upload either a single screenshot or a folder of benchmark-style inputs, select a provider, model, and generation method, and then launch a run directly from the browser. Once execution finishes, the interface presents the generated HTML, rendered screenshot, and evaluation scores together, enabling the user to inspect qualitative failures and quantitative outcomes in the same view.
 
 This interface is especially useful for rapid exploration, demonstrations, and small-scale debugging runs. It allows users to quickly test how a given method behaves on a new design example before committing to a larger benchmark campaign. The same frontend also includes leaderboard views for browsing previously collected results, making it possible to move fluidly between interactive experimentation and aggregate comparison.
 
@@ -205,12 +205,12 @@ That gives you one serious research-facing usage mode and one demo-facing usage 
 ## Suggested Rewrite for Your Paper
 
 ### `A. Reproducing and Comparing Benchmark Runs`
-WebBench is intended to support a common research workflow in which a user reproduces a published evaluation or compares several design-to-code methods under a shared setting. The user begins by selecting either a benchmark dataset or a custom input folder, together with a target model and generation method, and then launches the run through the CLI or REST API. During execution, WebBench exposes run status through polling interfaces and records intermediate artifacts, allowing the user to monitor progress, recover interrupted runs, and retrieve final outputs in a uniform format.
+UIBenchKit is intended to support a common research workflow in which a user reproduces a published evaluation or compares several design-to-code methods under a shared setting. The user begins by selecting either a benchmark dataset or a custom input folder, together with a target model and generation method, and then launches the run through the CLI or REST API. During execution, UIBenchKit exposes run status through polling interfaces and records intermediate artifacts, allowing the user to monitor progress, recover interrupted runs, and retrieve final outputs in a uniform format.
 
-Once the run completes, the tool returns a consolidated report containing generated HTML files, rendered screenshots, token statistics, and evaluation scores. Because this submission and reporting workflow is shared across all supported methods, the user can repeat the same procedure with different models or methods and directly compare the resulting outputs under identical benchmark conditions. In this way, WebBench is useful not only for single-run experimentation, but also for reproducible method comparison and leaderboard construction.
+Once the run completes, the tool returns a consolidated report containing generated HTML files, rendered screenshots, token statistics, and evaluation scores. Because this submission and reporting workflow is shared across all supported methods, the user can repeat the same procedure with different models or methods and directly compare the resulting outputs under identical benchmark conditions. In this way, UIBenchKit is useful not only for single-run experimentation, but also for reproducible method comparison and leaderboard construction.
 
 ### `B. Interactive Exploration with the Web Interface`
-To complement the programmatic workflow, WebBench also provides a web-based interface for interactive experimentation and result inspection. A user may upload a single screenshot or a folder of benchmark-style inputs, choose a provider, model, and generation method, and launch a run directly from the browser. After execution, the interface presents the generated HTML, rendered output, and evaluation metrics side by side, allowing users to inspect both qualitative behavior and quantitative performance within the same environment.
+To complement the programmatic workflow, UIBenchKit also provides a web-based interface for interactive experimentation and result inspection. A user may upload a single screenshot or a folder of benchmark-style inputs, choose a provider, model, and generation method, and launch a run directly from the browser. After execution, the interface presents the generated HTML, rendered output, and evaluation metrics side by side, allowing users to inspect both qualitative behavior and quantitative performance within the same environment.
 
 This interface is particularly useful for lightweight debugging, demonstration, and exploratory analysis. Users can quickly test how a method behaves on a new design example, inspect the returned artifacts, and download the results for further examination. In addition, the frontend includes leaderboard views for browsing benchmark results across methods and models, making the graphical interface a practical entry point for both live demonstration and comparative analysis.
 
@@ -218,10 +218,10 @@ This interface is particularly useful for lightweight debugging, demonstration, 
 If space gets tight, use this instead.
 
 ### `A. Reproducing and Comparing Runs`
-WebBench supports a research workflow in which a user launches a benchmark run through the CLI or REST API by specifying a dataset or custom input folder, a generation method, and a target model. The tool manages execution and returns a unified report containing generated HTML, rendered screenshots, token statistics, and evaluation metrics. Because the same interface is used across all supported methods, users can easily reproduce prior settings and compare alternative methods under identical conditions.
+UIBenchKit supports a research workflow in which a user launches a benchmark run through the CLI or REST API by specifying a dataset or custom input folder, a generation method, and a target model. The tool manages execution and returns a unified report containing generated HTML, rendered screenshots, token statistics, and evaluation metrics. Because the same interface is used across all supported methods, users can easily reproduce prior settings and compare alternative methods under identical conditions.
 
 ### `B. Interactive Exploration`
-WebBench also provides a web interface for lightweight experimentation. Users can upload screenshots, select a provider, model, and method, and inspect generated outputs and evaluation results in one view. The interface additionally supports leaderboard browsing, making it suitable for both live demonstration and benchmark analysis.
+UIBenchKit also provides a web interface for lightweight experimentation. Users can upload screenshots, select a provider, model, and method, and inspect generated outputs and evaluation results in one view. The interface additionally supports leaderboard browsing, making it suitable for both live demonstration and benchmark analysis.
 
 ## My Recommendation
 For your current draft, the best move is:
@@ -233,6 +233,6 @@ For your current draft, the best move is:
 ## If You Want To Push It Further
 A particularly nice ASE-style framing would be:
 
-> WebBench supports two complementary modes of use: a programmatic mode for reproducible benchmark execution and an interactive mode for exploratory testing and result inspection.
+> UIBenchKit supports two complementary modes of use: a programmatic mode for reproducible benchmark execution and an interactive mode for exploratory testing and result inspection.
 
 That sentence can become the opening line of Section IV.

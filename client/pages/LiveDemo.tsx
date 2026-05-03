@@ -51,11 +51,11 @@ import {
   Globe,
 } from "lucide-react";
 import type {
-  WebBenchSubmitResponse,
-  WebBenchPollResponse,
-  WebBenchReportResponse,
-  WebBenchHealthResponse,
-  WebBenchStopRunResponse,
+  UIBenchKitSubmitResponse,
+  UIBenchKitPollResponse,
+  UIBenchKitReportResponse,
+  UIBenchKitHealthResponse,
+  UIBenchKitStopRunResponse,
 } from "@shared/api";
 
 type DemoStage =
@@ -91,7 +91,7 @@ interface InstanceResult {
 interface DemoResult {
   runId: string;
   instances: InstanceResult[];
-  report: WebBenchReportResponse["report"] | null;
+  report: UIBenchKitReportResponse["report"] | null;
   /** Maps instanceId -> data URL of the original uploaded image */
   inputImages: Record<string, string>;
 }
@@ -182,7 +182,7 @@ export default function LiveDemo() {
   const [result, setResult] = useState<DemoResult | null>(null);
   const [activeInstanceIdx, setActiveInstanceIdx] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [pollStatus, setPollStatus] = useState<WebBenchPollResponse | null>(null);
+  const [pollStatus, setPollStatus] = useState<UIBenchKitPollResponse | null>(null);
   const [copied, setCopied] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [downloadingArtifacts, setDownloadingArtifacts] = useState(false);
@@ -202,7 +202,7 @@ export default function LiveDemo() {
   // â”€â”€ Restore persisted results on mount â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     try {
-      const saved = sessionStorage.getItem("webbench-demo-result");
+      const saved = sessionStorage.getItem("uibenchkit-demo-result");
       if (saved) {
         const parsed = JSON.parse(saved) as DemoResult;
         setResult(parsed);
@@ -217,7 +217,7 @@ export default function LiveDemo() {
   useEffect(() => {
     if (result && stage === "completed") {
       try {
-        sessionStorage.setItem("webbench-demo-result", JSON.stringify(result));
+        sessionStorage.setItem("uibenchkit-demo-result", JSON.stringify(result));
       } catch {
         // sessionStorage may be full for very large results - ignore
       }
@@ -226,9 +226,9 @@ export default function LiveDemo() {
 
   // â”€â”€ Health check on mount â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
-    fetch("/api/webbench/health")
+    fetch("/api/uibenchkit/health")
       .then((r) => r.json())
-      .then((data: WebBenchHealthResponse) => {
+      .then((data: UIBenchKitHealthResponse) => {
         setApiHealthy(data.status === "healthy");
         if (data.supported_methods) {
           setSupportedMethods(data.supported_methods);
@@ -256,7 +256,7 @@ export default function LiveDemo() {
     if (!userApiKey.trim()) return;
     setFetchingModels(true);
     try {
-      const resp = await fetch("/api/webbench/list-models", {
+      const resp = await fetch("/api/uibenchkit/list-models", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -461,11 +461,11 @@ export default function LiveDemo() {
     pollIntervalRef.current = setInterval(async () => {
       try {
         const resp = await fetch(
-          `/api/webbench/poll?run_id=${encodeURIComponent(runId)}`
+          `/api/uibenchkit/poll?run_id=${encodeURIComponent(runId)}`
         );
         if (!resp.ok) return;
 
-        const data: WebBenchPollResponse = await resp.json();
+        const data: UIBenchKitPollResponse = await resp.json();
         setPollStatus(data);
 
         if (
@@ -481,7 +481,7 @@ export default function LiveDemo() {
             await fetchResults(runId, data);
           } else if (data.status === "stopped") {
             setResult(null);
-            sessionStorage.removeItem("webbench-demo-result");
+            sessionStorage.removeItem("uibenchkit-demo-result");
             setStopMessage(
               `Run ${runId} was stopped. The in-flight image may have finished before cancellation took effect.`
             );
@@ -490,7 +490,7 @@ export default function LiveDemo() {
           } else {
             // Run-level failure - clear any stale result from a previous run
             setResult(null);
-            sessionStorage.removeItem("webbench-demo-result");
+            sessionStorage.removeItem("uibenchkit-demo-result");
             setStage("error");
             setCurrentRunId(null);
             setError(
@@ -505,15 +505,15 @@ export default function LiveDemo() {
   }, []);
 
   // â”€â”€ Fetch results after completion â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  const fetchResults = async (runId: string, poll: WebBenchPollResponse) => {
+  const fetchResults = async (runId: string, poll: UIBenchKitPollResponse) => {
     try {
       // Get the report
-      const reportResp = await fetch("/api/webbench/report", {
+      const reportResp = await fetch("/api/uibenchkit/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ run_id: runId }),
       });
-      const reportData: WebBenchReportResponse = await reportResp.json();
+      const reportData: UIBenchKitReportResponse = await reportResp.json();
 
       // Fetch results for ALL completed instances
       const instanceResults: InstanceResult[] = [];
@@ -521,14 +521,14 @@ export default function LiveDemo() {
       for (const instanceId of poll.completed) {
         try {
           const htmlResp = await fetch(
-            `/api/webbench/result-html/${encodeURIComponent(runId)}/${encodeURIComponent(instanceId)}`
+            `/api/uibenchkit/result-html/${encodeURIComponent(runId)}/${encodeURIComponent(instanceId)}`
           );
           const htmlData = await htmlResp.json();
 
           let screenshotBase64: string | null = null;
           try {
             const imgResp = await fetch(
-              `/api/webbench/result-image/${encodeURIComponent(runId)}/${encodeURIComponent(instanceId)}`
+              `/api/uibenchkit/result-image/${encodeURIComponent(runId)}/${encodeURIComponent(instanceId)}`
             );
             if (imgResp.ok) {
               const imgData = await imgResp.json();
@@ -622,7 +622,7 @@ export default function LiveDemo() {
     setCurrentRunId(null);
     setStopMessage(null);
     setStoppingRun(false);
-    sessionStorage.removeItem("webbench-demo-result");
+    sessionStorage.removeItem("uibenchkit-demo-result");
 
     // Snapshot input image for comparison (before closure goes stale)
     inputImagesRef.current = imagePreview ? { input: imagePreview } : {};
@@ -633,7 +633,7 @@ export default function LiveDemo() {
       setStage("processing");
 
       const creds = getSubmitCredentials();
-      const resp = await fetch("/api/webbench/upload-and-submit", {
+      const resp = await fetch("/api/uibenchkit/upload-and-submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -653,7 +653,7 @@ export default function LiveDemo() {
         throw new Error(err.message || "Submission failed");
       }
 
-      const data: WebBenchSubmitResponse = await resp.json();
+      const data: UIBenchKitSubmitResponse = await resp.json();
 
       if (!data.launched && !data.run_id) {
         throw new Error(data.message || "Failed to launch run");
@@ -684,7 +684,7 @@ export default function LiveDemo() {
     setCurrentRunId(null);
     setStopMessage(null);
     setStoppingRun(false);
-    sessionStorage.removeItem("webbench-demo-result");
+    sessionStorage.removeItem("uibenchkit-demo-result");
 
     // Snapshot input images for comparison (before closure goes stale)
     const map: Record<string, string> = {};
@@ -712,7 +712,7 @@ export default function LiveDemo() {
         ...(creds.baseUrl ? { user_base_url: creds.baseUrl } : {}),
       };
 
-      const resp = await fetch("/api/webbench/upload-folder-and-submit", {
+      const resp = await fetch("/api/uibenchkit/upload-folder-and-submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -723,7 +723,7 @@ export default function LiveDemo() {
         throw new Error(err.message || "Submission failed");
       }
 
-      const data: WebBenchSubmitResponse = await resp.json();
+      const data: UIBenchKitSubmitResponse = await resp.json();
 
       if (!data.launched && !data.run_id) {
         throw new Error(data.message || "Failed to launch run");
@@ -801,7 +801,7 @@ export default function LiveDemo() {
 
     try {
       const resp = await fetch(
-        `/api/webbench/download-artifacts/${encodeURIComponent(result.runId)}`
+        `/api/uibenchkit/download-artifacts/${encodeURIComponent(result.runId)}`
       );
 
       if (!resp.ok) {
@@ -835,12 +835,12 @@ export default function LiveDemo() {
     setStopMessage(null);
 
     try {
-      const resp = await fetch("/api/webbench/stop-run", {
+      const resp = await fetch("/api/uibenchkit/stop-run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ run_id: runId }),
       });
-      const data = (await resp.json().catch(() => ({}))) as Partial<WebBenchStopRunResponse>;
+      const data = (await resp.json().catch(() => ({}))) as Partial<UIBenchKitStopRunResponse>;
 
       if (!resp.ok) {
         throw new Error(data.message || "Failed to stop run");
@@ -854,7 +854,7 @@ export default function LiveDemo() {
       setCurrentRunId(null);
       setPollStatus(null);
       setResult(null);
-      sessionStorage.removeItem("webbench-demo-result");
+      sessionStorage.removeItem("uibenchkit-demo-result");
       setStopMessage(
         data.message ||
           `Run ${runId} was stopped. The current in-flight image may finish before cancellation fully takes effect.`
@@ -888,7 +888,7 @@ export default function LiveDemo() {
     if (fileInputRef.current) fileInputRef.current.value = "";
     if (folderInputRef.current) folderInputRef.current.value = "";
     if (refHtmlInputRef.current) refHtmlInputRef.current.value = "";
-    sessionStorage.removeItem("webbench-demo-result");
+    sessionStorage.removeItem("uibenchkit-demo-result");
   };
 
   // â”€â”€ Derived state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

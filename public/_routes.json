@@ -1,5 +1,5 @@
 {
   "version": 1,
-  "include": ["/.netlify/functions/*", "/api/webbench/*"],
+  "include": ["/.netlify/functions/*", "/api/uibenchkit/*"],
   "exclude": []
 }

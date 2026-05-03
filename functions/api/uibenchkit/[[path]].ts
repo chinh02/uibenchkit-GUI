@@ -1,6 +1,6 @@
 type Env = {
-  WEBBENCH_PROXY_URL?: string;
-  WEBBENCH_PROXY_SECRET?: string;
+  UIBENCHKIT_PROXY_URL?: string;
+  UIBENCHKIT_PROXY_SECRET?: string;
 };
 
 const HOP_BY_HOP_HEADERS = new Set([
@@ -52,18 +52,18 @@ export const onRequest = async ({
   request: Request;
   env: Env;
 }) => {
-  if (!env.WEBBENCH_PROXY_URL) {
+  if (!env.UIBENCHKIT_PROXY_URL) {
     return jsonResponse(
       {
-        error: "WebBench proxy not configured",
-        message: "Set WEBBENCH_PROXY_URL in Cloudflare Pages variables.",
+        error: "UIBenchKit proxy not configured",
+        message: "Set UIBENCHKIT_PROXY_URL in Cloudflare Pages variables.",
       },
       500,
     );
   }
 
   const sourceUrl = new URL(request.url);
-  const upstreamBase = env.WEBBENCH_PROXY_URL.replace(/\/+$/, "");
+  const upstreamBase = env.UIBENCHKIT_PROXY_URL.replace(/\/+$/, "");
   const upstreamUrl = new URL(`${upstreamBase}${sourceUrl.pathname}`);
   upstreamUrl.search = sourceUrl.search;
 
@@ -71,8 +71,8 @@ export const onRequest = async ({
     method: request.method,
     headers: (() => {
       const headers = copyRequestHeaders(request.headers);
-      if (env.WEBBENCH_PROXY_SECRET) {
-        headers.set("x-webbench-proxy-secret", env.WEBBENCH_PROXY_SECRET);
+      if (env.UIBENCHKIT_PROXY_SECRET) {
+        headers.set("x-uibenchkit-proxy-secret", env.UIBENCHKIT_PROXY_SECRET);
       }
       return headers;
     })(),

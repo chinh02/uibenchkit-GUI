@@ -60,7 +60,7 @@ export const CSV_COLUMNS = [
 
 // Configuration for data fetching
 const GITHUB_RAW_BASE_URL = 'https://raw.githubusercontent.com';
-const DEFAULT_REPO = 'chinh02/web-bench-experiments';
+const DEFAULT_REPO = 'chinh02/uibenchkit-experiments';
 const DEFAULT_BRANCH = 'main';
 
 // Use Express proxy for private repos (served at /.netlify/functions/github-proxy)
@@ -273,7 +273,7 @@ export async function fetchLeaderboardResults(
   benchmark: string,
   repoPath?: string
 ): Promise<LeaderboardData> {
-  // Try CSV format first (matching your data structure in web-bench-experiments repo)
+  // Try CSV format first (matching your data structure in uibenchkit-experiments repo)
   const csvFilePath = `leaderboard/comparison_${benchmark}.csv`;
   
   try {
