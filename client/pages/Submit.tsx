@@ -26,7 +26,7 @@ git checkout -b submit/my-model-results`,
   },
   {
     title: "Open a pull request",
-    body: "Push your branch and open a pull request against the results repository. The WebBench maintainers will review the files before they appear on the leaderboard.",
+    body: "Push your branch and open a pull request against the results repository. The UIBenchKit maintainers will review the files before they appear on the leaderboard.",
     code: `git add leaderboard/ evaluation/
 git commit -m "Add benchmark results for <model-name>"
 git push origin submit/my-model-results`,
@@ -50,7 +50,7 @@ export default function Submit() {
                 Submit Your Results
               </h1>
               <p className="text-text-secondary text-lg">
-                WebBench leaderboard data is reviewed through GitHub pull requests.
+                UIBenchKit leaderboard data is reviewed through GitHub pull requests.
               </p>
             </div>
 

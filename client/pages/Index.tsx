@@ -16,10 +16,10 @@ export default function Index() {
             {/* Project Description */}
             <div className="rounded-2xl border border-amber-200/50 bg-gradient-to-br from-white to-amber-50/40 p-6 sm:p-8 shadow-sm">
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">
-                WebBench: Unified Image-to-Code Benchmarking Platform
+                UIBenchKit: Unified Image-to-Code Benchmarking Platform
               </h2>
               <p className="text-sm sm:text-base text-gray-600 leading-relaxed mb-4">
-                WebBench is a tool-oriented platform that unifies multiple research methods for the
+                UIBenchKit is a tool-oriented platform that unifies multiple research methods for the
                 Design-to-Code task - automatically generating HTML + CSS from webpage screenshots.
                 It integrates generation methods such as <strong>DCGen</strong> (divide-and-conquer),
                 <strong> Direct</strong> (single-pass), and others under a common evaluation framework,
@@ -51,4 +51,3 @@ export default function Index() {
     </div>
   );
 }
-

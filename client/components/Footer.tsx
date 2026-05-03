@@ -7,12 +7,12 @@
           <div className="flex flex-col items-start gap-4 w-full lg:w-[280px]">
             <div className="flex items-center gap-3 self-stretch">
               <div className="w-12 h-12 bg-amber-primary rounded-lg flex items-center justify-center">
-                <span className="text-dark-bg font-bold text-xl">W</span>
+                <span className="text-dark-bg font-bold text-lg">UI</span>
               </div>
               <div className="flex flex-col justify-center">
                 <div className="pb-1">
                   <div className="font-display text-xl font-bold leading-5 text-text-primary">
-                    WebBench
+                    UIBenchKit
                   </div>
                 </div>
                 <div className="text-text-muted font-medium text-xs leading-4 tracking-[0.3px]">
@@ -95,7 +95,7 @@
         {/* Copyright */}
         <div className="flex flex-col items-center self-stretch pt-8 border-t border-amber-200/50">
           <p className="text-text-muted text-center text-sm leading-5">
-            (c) 2025 WebBench. All rights reserved.
+            (c) 2025 UIBenchKit. All rights reserved.
           </p>
         </div>
       </div>

@@ -148,7 +148,7 @@ export default function Sidebar() {
         <div className="px-6 mb-6">
           <a href="/" className="flex items-center">
             <div className="flex flex-col">
-              <span className="text-amber-primary font-display font-bold text-lg">WebBench</span>
+              <span className="text-amber-primary font-display font-bold text-lg">UIBenchKit</span>
               <span className="text-dark-muted text-xs">Design-to-code benchmarking</span>
             </div>
           </a>
@@ -249,7 +249,7 @@ export default function Sidebar() {
         {/* Footer */}
         <div className="px-6 pt-4 border-t border-dark-border">
           <div className="text-dark-muted text-xs">
-            © 2025 WebBench
+            © 2025 UIBenchKit
           </div>
         </div>
       </div>

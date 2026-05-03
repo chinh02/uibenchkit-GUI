@@ -13,7 +13,7 @@ interface PageConfig {
 
 const pageConfigs: Record<string, PageConfig> = {
   '/': {
-    title: 'WebBench',
+    title: 'UIBenchKit',
     subtitle: 'Unified Benchmarking for Design-to-Code Generation',
     paperUrl: 'https://arxiv.org/abs/YOUR_PAPER_ID',
     githubUrl: 'https://github.com/chinh02/webpai-experiment',
@@ -43,7 +43,7 @@ const pageConfigs: Record<string, PageConfig> = {
   },
   '/live-demo': {
     title: 'Live Demo',
-    subtitle: 'Image-to-Code Generation with WebBench',
+    subtitle: 'Image-to-Code Generation with UIBenchKit',
     paperUrl: 'https://arxiv.org/abs/2406.16386',
     githubUrl: 'https://github.com/WebPAI/DCGen',
   },
@@ -61,7 +61,7 @@ export default function Header() {
 
   useEffect(() => {
     document.title =
-      config.title === "WebBench" ? "WebBench" : `${config.title} | WebBench`;
+      config.title === "UIBenchKit" ? "UIBenchKit" : `${config.title} | UIBenchKit`;
   }, [config.title]);
 
   return (

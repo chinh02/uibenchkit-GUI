@@ -494,7 +494,7 @@ export default function LiveDemo() {
             setStage("error");
             setCurrentRunId(null);
             setError(
-              `Run ${data.status}. Check WebBench server logs for details.`
+              `Run ${data.status}. Check UIBenchKit server logs for details.`
             );
           }
         }
@@ -554,7 +554,7 @@ export default function LiveDemo() {
         const errorMsg =
           poll.failed_details?.[instanceId] ||
           (reportData.report?.results?.instances?.[instanceId] as any)?.error ||
-          "Generation failed - check WebBench server logs for details.";
+          "Generation failed - check UIBenchKit server logs for details.";
         instanceResults.push({
           instanceId,
           status: "failed",
@@ -950,9 +950,9 @@ export default function LiveDemo() {
                   <p className="text-text-secondary text-sm sm:text-base leading-relaxed">
                     Upload a screenshot or an{" "}
                     <strong>entire folder of images &amp; HTML/CSS</strong>,
-                    select a model and method, and watch WebBench automatically
+                    select a model and method, and watch UIBenchKit automatically
                     generate HTML + Tailwind CSS code. This demo connects to the
-                    WebBench backend to run the full pipeline: image
+                    UIBenchKit backend to run the full pipeline: image
                     segmentation, code generation, assembly, and evaluation.
                   </p>
                   {/* API status badge */}
@@ -965,12 +965,12 @@ export default function LiveDemo() {
                     ) : apiHealthy ? (
                       <Badge className="gap-1.5 bg-green-100 text-green-700 border-green-300 hover:bg-green-100">
                         <CheckCircle2 className="w-3 h-3" />
-                        WebBench API Connected
+                        UIBenchKit API Connected
                       </Badge>
                     ) : (
                       <Badge variant="destructive" className="gap-1.5">
                         <XCircle className="w-3 h-3" />
-                        WebBench API Offline
+                        UIBenchKit API Offline
                       </Badge>
                     )}
                   </div>
@@ -1436,7 +1436,7 @@ export default function LiveDemo() {
                       )}
 
                       <p className="text-[11px] text-gray-400">
-                        Your key is sent to the WebBench backend only - never stored.
+                        Your key is sent to the UIBenchKit backend only - never stored.
                       </p>
                   </div>
 
@@ -2162,7 +2162,7 @@ export default function LiveDemo() {
                 <StepCard
                   step={3}
                   title="Get HTML + Metrics"
-                  description="WebBench generates HTML + Tailwind CSS code for each image, takes screenshots, and evaluates visual and code similarity automatically."
+                  description="UIBenchKit generates HTML + Tailwind CSS code for each image, takes screenshots, and evaluates visual and code similarity automatically."
                 />
               </div>
             </div>

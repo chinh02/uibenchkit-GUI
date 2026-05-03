@@ -185,7 +185,7 @@ export default function Citations() {
                     Citations
                   </h1>
                   <p className="text-text-secondary mt-1">
-                    Cite the benchmarks and generation methods used in WebBench.
+                    Cite the benchmarks and generation methods used in UIBenchKit.
                   </p>
                 </div>
               </div>
