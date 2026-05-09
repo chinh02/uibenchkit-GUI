@@ -41,7 +41,7 @@ export const handleGitHubProxy: RequestHandler = async (req, res) => {
       headers: {
         Authorization: `Bearer ${GITHUB_TOKEN}`,
         Accept: "application/vnd.github.v3.raw",
-        "User-Agent": "DesignBench-Leaderboard",
+        "User-Agent": "UIBenchKit-Leaderboard",
       },
     });
 

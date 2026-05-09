@@ -16,7 +16,7 @@ const pageConfigs: Record<string, PageConfig> = {
     title: 'UIBenchKit',
     subtitle: 'Unified Benchmarking for Design-to-Code Generation',
     paperUrl: 'https://arxiv.org/abs/YOUR_PAPER_ID',
-    githubUrl: 'https://github.com/chinh02/webpai-experiment',
+    githubUrl: 'https://github.com/chinh02/uibenchkit-GUI',
     datasetUrl: 'https://huggingface.co/datasets/YOUR_DATASET',
   },
   '/dcgen': {
