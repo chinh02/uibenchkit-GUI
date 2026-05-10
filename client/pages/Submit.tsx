@@ -3,37 +3,68 @@ import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
-const resultsRepoUrl = "https://github.com/chinh02/uibenchkit-GUI";
+const experimentsRepoUrl = "https://github.com/chinh02/uibenchkit-experiments";
+const huggingFaceDatasetUrl = "https://huggingface.co/datasets/chinh02/UIBenchKit";
 
 const checklist = [
-  "Leaderboard result file with dataset, method, model, and metric columns filled in.",
-  "Run artifacts needed for verification, including generated HTML, screenshots, reports, and logs when available.",
-  "Clear model and method metadata, including provider, model version, prompting method, and evaluation timestamp.",
-  "A short note in the pull request describing how the run was produced and anything unusual about the results.",
+  "Raw UIBenchKit run artifacts uploaded to the Hugging Face dataset under raw-data/<run_id>/.",
+  "A lightweight submissions/<run_id>.json manifest pointing to the Hugging Face artifact path.",
+  "Regenerated leaderboard CSV and JSON files produced by summarize_leaderboard.py.",
+  "A short pull request note with dataset, method, model, run ID, UIBenchKit version, and any known failures.",
 ];
 
 const steps = [
   {
-    title: "Clone the results repository",
-    body: "Fork or clone the repository that backs the public leaderboard, then create a new branch for your submission.",
-    code: `git clone ${resultsRepoUrl}.git
-cd uibenchkit-GUI
+    title: "Upload raw artifacts",
+    body: "Upload the completed UIBenchKit run folder to the Hugging Face dataset. Keep the folder name identical to the run ID.",
+    code: `raw-data/<dataset>_<method>_<model>_<YYYYMMDD>_<HHMMSS>/
+  evaluation.json
+  run_metadata.json
+  results.json
+  cost_report.json
+  *.html
+  *.png`,
+  },
+  {
+    title: "Clone the experiments repository",
+    body: "Fork or clone the lightweight repository that stores submission manifests and generated leaderboard files.",
+    code: `git clone ${experimentsRepoUrl}.git
+cd uibenchkit-experiments
 git checkout -b submit/my-model-results`,
   },
   {
-    title: "Add your results and artifacts",
-    body: "Place the leaderboard rows and verification artifacts in the matching dataset folders. Keep filenames descriptive and avoid overwriting existing submissions.",
+    title: "Add a submission manifest",
+    body: "Create submissions/<run_id>.json with the dataset, method, model, and Hugging Face artifact location.",
+    code: `{
+  "run_id": "<run_id>",
+  "dataset": "dcgen",
+  "method": "direct",
+  "model": "gpt-4o",
+  "artifact_source": "huggingface",
+  "artifact_repo": "chinh02/UIBenchKit",
+  "artifact_repo_type": "dataset",
+  "artifact_revision": "main",
+  "artifact_path": "raw-data/<run_id>",
+  "uibenchkit_version": "main",
+  "notes": ""
+}`,
+  },
+  {
+    title: "Regenerate leaderboard files",
+    body: "Run the summarizer so the GUI-facing CSV and JSON files include your submission.",
+    code: `python -m pip install tiktoken huggingface_hub
+python summarize_leaderboard.py`,
   },
   {
     title: "Open a pull request",
-    body: "Push your branch and open a pull request against the results repository. The UIBenchKit maintainers will review the files before they appear on the leaderboard.",
-    code: `git add leaderboard/ evaluation/
+    body: "Commit the manifest and regenerated leaderboard files. Do not commit raw HTML, PNG, or full run artifact folders.",
+    code: `git add submissions/ leaderboard/
 git commit -m "Add benchmark results for <model-name>"
 git push origin submit/my-model-results`,
   },
   {
     title: "Manual review and merge",
-    body: "After the PR is checked for completeness and consistency, we manually approve and merge it. The website reads from GitHub, so merged data becomes visible on the leaderboard after the next refresh/deploy.",
+    body: "After the PR is checked for completeness and consistency, maintainers merge it. The website reads leaderboard data from GitHub, so merged rows become visible after the next refresh or deploy.",
   },
 ];
 
@@ -50,7 +81,7 @@ export default function Submit() {
                 Submit Your Results
               </h1>
               <p className="text-text-secondary text-lg">
-                UIBenchKit leaderboard data is reviewed through GitHub pull requests.
+                UIBenchKit leaderboard submissions use Hugging Face for raw artifacts and GitHub pull requests for lightweight manifests.
               </p>
             </div>
 
@@ -62,19 +93,30 @@ export default function Submit() {
                       Results Repository
                     </h2>
                     <p className="mt-2 text-text-secondary">
-                      Clone this repository, add your benchmark outputs and artifacts, then open a pull request for review.
+                      Upload raw artifacts to Hugging Face, then open a pull request to the experiments repository with the submission manifest and regenerated leaderboard files.
                     </p>
                   </div>
-                  <a
-                    href={resultsRepoUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-amber-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-amber-light"
-                  >
-                    <Github className="h-4 w-4" />
-                    GitHub Repo
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
+                  <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                    <a
+                      href={experimentsRepoUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center justify-center gap-2 rounded-lg bg-amber-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-amber-light"
+                    >
+                      <Github className="h-4 w-4" />
+                      Experiments Repo
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                    <a
+                      href={huggingFaceDatasetUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center justify-center gap-2 rounded-lg border border-amber-200 bg-white px-4 py-2.5 text-sm font-semibold text-amber-800 transition-colors hover:bg-amber-50"
+                    >
+                      Raw Artifacts
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  </div>
                 </div>
               </section>
 
@@ -126,7 +168,7 @@ export default function Submit() {
                       Review policy
                     </h2>
                     <p className="mt-1 text-sm text-amber-800/80">
-                      Submissions are not added automatically. We manually check each pull request for complete artifacts, reproducible metadata, and consistent leaderboard formatting before approval.
+                      Submissions are not added automatically. We manually check that the Hugging Face artifacts are reachable, the manifest metadata is reproducible, and the regenerated leaderboard files are consistent before approval.
                     </p>
                   </div>
                 </div>
