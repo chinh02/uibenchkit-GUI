@@ -16,7 +16,7 @@ export default function Index() {
             {/* Project Description */}
             <div className="rounded-2xl border border-amber-200/50 bg-gradient-to-br from-white to-amber-50/40 p-6 sm:p-8 shadow-sm">
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">
-                UIBenchKit: Unified Image-to-Code Benchmarking Platform
+                UIBenchKit: A unified toolkit for design-to-code model evaluation
               </h2>
               <p className="text-sm sm:text-base text-gray-600 leading-relaxed mb-4">
                 UIBenchKit is a tool-oriented platform that unifies multiple research methods for the
@@ -28,7 +28,7 @@ export default function Index() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-100 min-w-0">
                   <span className="font-bold text-amber-700 text-base leading-none mt-0.5 shrink-0">10+</span>
-                  <span className="text-gray-600 min-w-0">Model families supported (GPT-4o, Claude, Gemini, Qwen, DeepSeek, and more)</span>
+                  <span className="text-gray-600 min-w-0">Model families supported (GPT, Claude, Gemini and more)</span>
                 </div>
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-100 min-w-0">
                   <span className="font-bold text-amber-700 text-base leading-none mt-0.5 shrink-0">7</span>
