@@ -6,7 +6,7 @@ import Footer from "../components/Footer";
 import { Button } from "../components/ui/button";
 
 type CitationFormat = "bibtex" | "apa" | "mla";
-type CitationGroup = "Benchmarks" | "Methods";
+type CitationGroup = "UIBenchKit" | "Benchmarks" | "Methods";
 
 interface CitationEntry {
   id: string;
@@ -24,6 +24,28 @@ const formatLabels: Record<CitationFormat, string> = {
 };
 
 const citationEntries: CitationEntry[] = [
+  {
+    id: "uibenchkit",
+    name: "UIBenchKit",
+    group: "UIBenchKit",
+    title: "UIBenchKit: A unified toolkit for design-to-code model evaluation",
+    url: "https://arxiv.org/pdf/2605.13141",
+    citations: {
+      bibtex: `@misc{le2026uibenchkitunifiedtoolkitdesigntocode,
+  title={UIBenchKit: A unified toolkit for design-to-code model evaluation},
+  author={Chinh T. Le and Trevor Ong Yee Siang and Jingyu Xiao and Yuxuan Wan and Yintong Huo},
+  year={2026},
+  eprint={2605.13141},
+  archivePrefix={arXiv},
+  primaryClass={cs.SE},
+  url={https://arxiv.org/abs/2605.13141}
+}`,
+      apa:
+        "Le, C. T., Ong Yee Siang, T., Xiao, J., Wan, Y., & Huo, Y. (2026). UIBenchKit: A unified toolkit for design-to-code model evaluation. arXiv. https://arxiv.org/abs/2605.13141",
+      mla:
+        'Le, Chinh T., et al. "UIBenchKit: A Unified Toolkit for Design-to-Code Model Evaluation." arXiv, 2026, https://arxiv.org/abs/2605.13141.',
+    },
+  },
   {
     id: "design2code",
     name: "Design2Code",
@@ -156,7 +178,7 @@ const citationEntries: CitationEntry[] = [
   },
 ];
 
-const groups: CitationGroup[] = ["Benchmarks", "Methods"];
+const groups: CitationGroup[] = ["UIBenchKit", "Benchmarks", "Methods"];
 
 export default function Citations() {
   const [format, setFormat] = useState<CitationFormat>("bibtex");
@@ -216,9 +238,11 @@ export default function Citations() {
                       {group}
                     </h2>
                     <p className="text-sm text-text-secondary mt-1">
-                      {group === "Benchmarks"
-                        ? "Cite these when reporting results on a benchmark dataset."
-                        : "Cite these when comparing or using a specific generation method."}
+                      {group === "UIBenchKit"
+                        ? "Cite this paper when using UIBenchKit as an evaluation toolkit."
+                        : group === "Benchmarks"
+                          ? "Cite these when reporting results on a benchmark dataset."
+                          : "Cite these when comparing or using a specific generation method."}
                     </p>
                   </div>
 

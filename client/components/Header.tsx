@@ -15,7 +15,7 @@ const pageConfigs: Record<string, PageConfig> = {
   '/': {
     title: 'UIBenchKit',
     subtitle: 'Unified Benchmarking for Design-to-Code Generation',
-    paperUrl: 'https://arxiv.org/abs/',
+    paperUrl: 'https://arxiv.org/pdf/2605.13141',
     githubUrl: 'https://github.com/chinh02/UIBenchKit',
     datasetUrl: 'https://huggingface.co/datasets/chinh02/UIBenchKit/tree/main',
   },
@@ -44,7 +44,7 @@ const pageConfigs: Record<string, PageConfig> = {
   '/live-demo': {
     title: 'Live Demo',
     subtitle: 'Image-to-Code Generation with UIBenchKit',
-    paperUrl: 'https://arxiv.org/abs/',
+    paperUrl: 'https://arxiv.org/pdf/2605.13141',
     githubUrl: 'https://github.com/chinh02/UIBenchKit',
   },
 };
