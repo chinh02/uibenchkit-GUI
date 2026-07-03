@@ -6,24 +6,9 @@ import { RequestHandler } from "express";
  */
 export const handleGitHubProxy: RequestHandler = async (req, res) => {
   const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-  const GITHUB_REPO = process.env.GITHUB_REPO;
+  const GITHUB_REPO =
+    process.env.GITHUB_REPO || "chinh02/uibenchkit-experiments";
   const DEFAULT_BRANCH = process.env.GITHUB_BRANCH || "main";
-
-  if (!GITHUB_TOKEN) {
-    res.status(500).json({
-      error: "GitHub token not configured",
-      message: "Please set GITHUB_TOKEN environment variable",
-    });
-    return;
-  }
-
-  if (!GITHUB_REPO) {
-    res.status(500).json({
-      error: "GitHub repository not configured",
-      message: "Please set GITHUB_REPO environment variable",
-    });
-    return;
-  }
 
   const filePath = req.query.filePath as string;
   const branch = (req.query.branch as string) || DEFAULT_BRANCH;
@@ -37,13 +22,15 @@ export const handleGitHubProxy: RequestHandler = async (req, res) => {
     // Construct GitHub API URL for raw content
     const apiUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/${filePath}?ref=${branch}`;
 
-    const response = await fetch(apiUrl, {
-      headers: {
-        Authorization: `Bearer ${GITHUB_TOKEN}`,
-        Accept: "application/vnd.github.v3.raw",
-        "User-Agent": "UIBenchKit-Leaderboard",
-      },
-    });
+    const headers: Record<string, string> = {
+      Accept: "application/vnd.github.v3.raw",
+      "User-Agent": "UIBenchKit-Leaderboard",
+    };
+    if (GITHUB_TOKEN) {
+      headers.Authorization = `Bearer ${GITHUB_TOKEN}`;
+    }
+
+    const response = await fetch(apiUrl, { headers });
 
     if (!response.ok) {
       const errorText = await response.text();
